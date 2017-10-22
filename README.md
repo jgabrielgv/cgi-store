@@ -11,7 +11,7 @@ Allow cgi to run over apache
 ```bash
 git clone https://github.com/jgabrielgv/cgi-store.git
 cd cgi-store
-chmod 555 copy.sh
+chmod 755 copy.sh
 sudo ./copy.sh # need root access in order to avoid a non root user to remove the files
 Ready! Now open the url http://localhost/cgi-bin/signin.py to run the website
 ```
