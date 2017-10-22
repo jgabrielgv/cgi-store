@@ -1,7 +1,7 @@
 ## cgi-store
 ### cgi store website built using python
 
-###Preinstallation
+## Preinstallation
 ```bash
 Configure apache
 Allow cgi to run over apache```
