@@ -16,6 +16,6 @@ print "<title>Hello - Second CGI Program</title>"
 print "</head>"
 print "<body>"
 print "<p>Parrafo<p>"
-print "<h2>username: %s, password: %s, other: %s, len: %s</h2>" % (parser.get_value("username", ""), parser.get_value("password", ""), parser.get_value("other", ""), parser.elements_count())
+print "<h2>username: %s, password: %s, other: %s, len: %s</h2>" % (parser.get("username", ""), parser.get("password", ""), parser.get("other", ""), parser.elements_count())
 print "</body>"
 print "</html>"

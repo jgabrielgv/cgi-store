@@ -31,9 +31,9 @@ class FormParser(object):
         #validate element
         self.reset_properties()
 
-    def get_value(self, key, default_value):
+    def get(self, key, default_value):
         """Gets an element from an array"""
-        return self.__elements[key] if key in self.__elements else default_value
+        return self.__elements.get(key, default_value)
 
     def elements_count(self):
         """Retunrs the elements size"""
