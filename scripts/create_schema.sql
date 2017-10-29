@@ -6,7 +6,7 @@ create table if not exists user (
     user_id int not null AUTO_INCREMENT,
     username varchar(50) not null,
     email varchar(50) not null,
-    password varchar(50),
+    password varchar(50) not null,
     entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     constraint pk_user primary key(user_id),
     constraint uk_user_username UNIQUE (username),
@@ -23,8 +23,7 @@ price decimal(13,2),
 image_path varchar(1024),
     constraint pk_product primary key(product_id),
     constraint uk_product_code UNIQUE (code),
-CONSTRAINT fk_product FOREIGN KEY (product_id)
-      REFERENCES user(user_id)
+CONSTRAINT fk_product_user_id FOREIGN KEY (user_id) REFERENCES user(user_id)
       ON DELETE RESTRICT
       ON UPDATE RESTRICT
 );
@@ -52,8 +51,7 @@ message varchar(300),
 name varchar(50),
 email varchar(50),
     constraint pk_suggestion primary key(suggestion_id),
-CONSTRAINT fk_suggestion FOREIGN KEY (suggestion_id)
-      REFERENCES user(user_id)
+CONSTRAINT fk_suggestion_user_id FOREIGN KEY (user_id) REFERENCES user(user_id)
       ON DELETE RESTRICT
       ON UPDATE RESTRICT
 );
@@ -67,8 +65,7 @@ subtotal decimal(13,2),
 taxes decimal(13,2),
 total decimal(13,2),
     constraint pk_invoice_header primary key(invoice_no),
-CONSTRAINT fk_invoice_headern FOREIGN KEY (invoice_no)
-      REFERENCES user(user_id)
+CONSTRAINT fk_invoice_header_user_id FOREIGN KEY (user_id) REFERENCES user(user_id)
       ON DELETE RESTRICT
       ON UPDATE RESTRICT
 );
@@ -82,10 +79,10 @@ descr varchar(100),
 price decimal(13,2),
 discount decimal(13,2),
     constraint pk_invoice_detail primary key (invoice_detail_id),
-    constraint fk_invoice_detail_invoice_no foreign key (invoice_detail_id) references invoice_header(invoice_no) 
+    constraint fk_invoice_detail_invoice_no foreign key (invoice_no) references invoice_header(invoice_no) 
 on delete RESTRICT
     on update RESTRICT,
-    constraint fk_invoice_detail_product_id foreign key (invoice_detail_id) references product(product_id)
+    constraint fk_invoice_detail_product_id foreign key (product_id) references product(product_id)
     on delete RESTRICT
     on update RESTRICT
 );

@@ -1,8 +1,6 @@
 #!/usr/bin/python
 """This script shows the login page"""
 
-print "Content-type: text/html\n\n"
+from utils.helpers import print_page
 
-from helpers import embed_local_file
-
-embed_local_file('signin.html')
+print_page('signin.html', "Iniciar sesion", '<link rel="stylesheet" type="text/css" href="css/styles.css">')

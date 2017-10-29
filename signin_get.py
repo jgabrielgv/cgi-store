@@ -3,19 +3,22 @@
 
 #from os import getenv
 import sys
-from helpers import FormParser
+from utils.helpers import FormParser
+from data.dao import Connection
 
-query_string = sys.stdin.read() # reads the parameters, username=xxx&password=xxx
 parser = FormParser()
-parser.parse_values(query_string)#query_string.partition('&')
+parser.parse_values(sys.stdin.read())#query_string.partition('&')
 
-#print "Location: signup.py" # redirect to another page when success
+conn = Connection()
+user_id = parser.get_value("username", "")
+password = parser.get_value("password", "")
+user = conn.fetch_user(user_id, password)
 
-print "Content-type:text/html\r\n\r\n"
-print "<title>Hello - Second CGI Program</title>"
-print "</head>"
-print "<body>"
-print "<p>Parrafo<p>"
-print "<h2>username: %s, password: %s, other: %s, len: %s</h2>" % (parser.get("username", ""), parser.get("password", ""), parser.get("other", ""), parser.elements_count())
-print "</body>"
-print "</html>"
+if user:
+    #no errors 
+    print "Location: index.py"
+else:
+    #incorrect user or password
+    print "Location: signin.py?error=true"
+
+print "Content-type: text/html\n\n"
