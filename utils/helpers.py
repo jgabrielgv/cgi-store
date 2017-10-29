@@ -34,10 +34,11 @@ def is_float(value):
     except ValueError:
         return False
 
-def print_page(html_file, title, css_file='<link rel="stylesheet" type="text/css" href="css/styles.css">'):
+def print_page(html_file, title, css_file='', body=''):
     """Prints a page based on the html and css parameter specifications"""
     print "Content-type: text/html\n\n"
-    body = loadhtml(html_file)
+    if not body and html_file:
+        body = loadhtml(html_file)
     wholepage = pagetemplate.replace('**title**', title).replace('**css**', css_file).replace('**body**', body)
     ucgiprint(wholepage)
 

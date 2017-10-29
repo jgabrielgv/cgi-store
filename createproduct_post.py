@@ -1,6 +1,5 @@
 #!/usr/bin/python
 """Handles the product creation event"""
-import os
 import sys
 import utils.constants as constants
 from utils.helpers import FormParser, current_date, is_float

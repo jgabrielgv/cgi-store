@@ -117,9 +117,12 @@ class Connection(object):
         result = []
         try:
             #self.__elements[key_value[0]] = unquote(key_value[1]) if len(key_value) > 1 else ""
-            sql_query = """select product_id,user_id,code,entry_date,descr,price,image_path from product where user_id = %d""" \
+            sql_query = """select product_id,user_id,code,entry_date,descr,price,image_path from product where user_id = %s""" \
             if user_id else """select product_id,user_id,code,entry_date,descr,price,image_path from product"""
-            cursor.execute(sql_query, (user_id,))
+            if user_id:
+                cursor.execute(sql_query, (user_id,))
+            else:
+                cursor.execute(sql_query)
             query = cursor.fetchall()
             for product_id, user_id, code, entry_date, descr, price, image_path in query:
                 result.append(Product(product_id, user_id, code, entry_date, descr, price, image_path))
