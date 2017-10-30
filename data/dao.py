@@ -3,7 +3,7 @@
 from utils.helpers import current_date
 from utils.secrets import check_password, make_secret
 import mysql.connector as mariadb
-from data.models import Product, User
+from data.models import Product, ProductDetail, User
 #from getpass import getpass
 
 class Connection(object):
@@ -110,27 +110,76 @@ class Connection(object):
             self.__close_connection(cursor)
         return result
 
-    def fetch_products(self, user_id=None):
-        """Fetch all products from a specic user"""
+    def fetch_product_by_code(self, code):
+        """Fetch all products"""
         self.__open_connection()
         cursor = self.__db.cursor()
-        result = []
+        result = None
         try:
-            #self.__elements[key_value[0]] = unquote(key_value[1]) if len(key_value) > 1 else ""
-            sql_query = """select product_id,user_id,code,entry_date,descr,price,image_path from product where user_id = %s""" \
-            if user_id else """select product_id,user_id,code,entry_date,descr,price,image_path from product"""
-            if user_id:
-                cursor.execute(sql_query, (user_id,))
-            else:
-                cursor.execute(sql_query)
+            sql_query = """select p.code, p.descr, p.price, p.entry_date, u.username from product p inner join user u on p.user_id = u.user_id and p.code = %s"""
+            cursor.execute(sql_query, (code,))
             query = cursor.fetchall()
-            for product_id, user_id, code, entry_date, descr, price, image_path in query:
-                result.append(Product(product_id, user_id, code, entry_date, descr, price, image_path))
+            for code, descr, price, entry_date, username in query:
+                result = ProductDetail(0, username, code, entry_date, descr, price)
         except mariadb.Error as error:
             self.__log(self.__default_sql_error, error)
         finally:
             self.__close_connection(cursor)
         return result
+
+    def fetch_products_by_user_id(self, user_id):
+        """Fetch all products from a specic user"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = []
+        try:
+            sql_query = """select code,descr,price,entry_date,image_path from product where user_id = %s"""
+            cursor.execute(sql_query, (user_id,))
+            query = cursor.fetchall()
+            for code, descr, price, entry_date, image_path in query:
+                result.append(Product(0, 0, code, entry_date, descr, float(price), image_path))
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+        finally:
+            self.__close_connection(cursor)
+        return result
+
+    def fetch_products(self):
+        """Fetch all products"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = []
+        try:
+            sql_query = """select p.code, p.descr, p.price, p.entry_date, u.username from product p inner join user u on p.user_id = u.user_id"""
+            cursor.execute(sql_query)
+            query = cursor.fetchall()
+            for code, descr, price, entry_date, username in query:
+                result.append(ProductDetail(0, username, code, entry_date, descr, price))
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+        finally:
+            self.__close_connection(cursor)
+        return result
+
+    def increase_cart_qty(self, cart):
+        """Creates an article into the database"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            sql_query = """insert into shopping_cart (user_id, product_id, quantity) values 
+            (%{user_id}s, %{product_id}s %{quantity}s) on duplicate key update quantity = quantity + %{quantity}s;"""
+            cursor.execute(sql_query, { "user_id": cart.user_id, "product_id": cart.product_id, "quantity": cart.quantity })
+            if not cursor.rowcount:
+                self.__log("No se ha podido realizar la transaccion. Favor intente de nuevo.")
+                return result
+            self.__db.commit()
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
+        return True
 
     def valid_product_to_create(self, product, cursor):
         """Validate product properties bofore save, for example, that the code_id does not exists yet"""

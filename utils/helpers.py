@@ -9,23 +9,8 @@ from datetime import datetime
 def current_date():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-"""
-def get_local_path():
-    """"""Returns the local path""""""
-    return os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-
-def embed_file(path, file_name):
-    """"""Embed content""""""
-    #includes the signup html code
-    f = open(os.path.join(path, file_name), 'r')
-    print f.read()
-    f.close()
-
-def embed_local_file(file_name):
-    """"""Embed content from local path""""""
-    __location__ = get_local_path()
-    embed_file(__location__, file_name)
-"""
+def get_session_user_id():
+    return 2
 
 def is_float(value):
     try:
@@ -116,6 +101,14 @@ class FormParser(object):
     def elements_count(self):
         """Retunrs the elements size"""
         return self.__elements_count
+
+    def parse_get_values(self):
+        """Parse the QUERY_STRING parameters"""
+        self.parse_values(os.environ["QUERY_STRING"])
+
+    def parse_post_values(self):
+        """Parse the stdin parameters"""
+        self.parse_values(sys.stdin.read())
 
     def parse_values(self, input_value):
         """Parse parameters"""

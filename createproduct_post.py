@@ -29,7 +29,7 @@ def __redirect_on_error():
     print "Content-type: text/html\n\n"
 
 __parser = FormParser()
-__parser.parse_values(sys.stdin.read())
+__parser.parse_post_values()
 
 __code = __parser.get_value("code","").strip()
 __descr = __parser.get_value("descr", "").strip()
