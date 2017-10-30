@@ -1,0 +1,39 @@
+<table>
+    <tr>
+        <td>Código:</td>
+        <td>{0}</td>
+    </tr>
+    <tr>
+        <td>Descripción:</td>
+        <td>{1}</td>
+    </tr>
+    <tr>
+        <td>Precio:</td>
+        <td>{2}</td>
+    </tr>
+    <tr>
+        <td>Usuario:</td>
+        <td>{3}</td>
+    </tr>
+    <tr>
+        <td>Fecha de ingreso:</td>
+        <td>{4}</td>
+    </tr>
+</table>
+<form method="post" action="increase_cart_qty.py">
+    <input type="hidden" name="code" value="{0}">
+    <fieldset>
+        <legend>Agregar al carrito</legend>
+        <table>
+            <tr>
+                <td>Cantidad</td>
+                <td><input type="number" name="quantity" value="1"></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <input type="submit" value="Agregar">
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+</form>
