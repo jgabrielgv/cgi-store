@@ -1,16 +1,37 @@
 #!/usr/bin/python
 """This script contains the helper functions used across the website"""
 
-import os
+import Cookie 
+import time
+import session
 import sys
+import os
 from urllib2 import unquote
 from datetime import datetime
+
+def check_user_seesion():
+    try:
+        cookie = Cookie.SimpleCookie(os.environ["HTTP_COOKIE"])
+        sess = session.Session(expires='Thu, 01 Jan 1970 00:00:00 GMT', cookie_path='/')
+        #lastvisit = sess.data.get('lastvisit')
+        sess.data['lastvisit'] = repr(time.time())
+        #print print_page('index.html', "Inicio")
+        #print cookie["sid"].value
+        if cookie["sid"].value != sess.cookie["sid"].value:
+            return False
+        else:
+            return True
+    
+    except (Cookie.CookieError, KeyError):
+        return False
+        #print "Content-type: text/plain\n"
+        #print "El usuario no esta Logueado"
 
 def current_date():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-def get_session_user_id():
-    return 2
+def get_session_user_id(): 
+    return 2 
 
 def is_float(value):
     try:
@@ -64,7 +85,12 @@ def replace(instring, indict):
     for key in indict:
         instring = instring.replace(key, indict[key])
     return instring
+valiadtionMessage = '''
+<span class="form-valid-data-sign"><i class="fa fa-check"></i></span>
 
+                <span class="form-invalid-data-sign"><i class="fa fa-close"></i></span>
+                <span class="form-invalid-data-info">**error**</span>
+'''
 # let's define out html values and templates
 pagetemplate = '''
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0
@@ -78,7 +104,8 @@ pagetemplate = '''
                             content="text/html;
                             charset=UTF-8" />
                             **css**
-                    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+                            <link rel="stylesheet" href="css/font-awesome.min.css">
+                    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script> -->
             </head>
             <body>
                     **body**
@@ -102,13 +129,13 @@ class FormParser(object):
         """Retunrs the elements size"""
         return self.__elements_count
 
-    def parse_get_values(self):
-        """Parse the QUERY_STRING parameters"""
-        self.parse_values(os.environ["QUERY_STRING"])
-
-    def parse_post_values(self):
-        """Parse the stdin parameters"""
-        self.parse_values(sys.stdin.read())
+    def parse_get_values(self): 
+        """Parse the QUERY_STRING parameters""" 
+        self.parse_values(os.environ["QUERY_STRING"]) 
+ 
+    def parse_post_values(self): 
+        """Parse the stdin parameters""" 
+        self.parse_values(sys.stdin.read()) 
 
     def parse_values(self, input_value):
         """Parse parameters"""

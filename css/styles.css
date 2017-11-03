@@ -52,9 +52,9 @@
   color: #4CAF50;
   text-decoration: none;
 }
-.form .register-form {
+/* .form .register-form {
   display: none;
-}
+} */
 .container {
   position: relative;
   z-index: 1;
@@ -98,3 +98,65 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;      
 }
+
+/* Styles for Invalid input data */
+.form .form-valid-data-sign{
+  position: absolute;
+  color: #ffffff;
+  line-height: 24px;
+  text-align: center;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background-color:  #a2cf78;
+  left: 440px;
+  top: 10px;
+  display: none;
+} 
+
+.form .form-invalid-data{
+  margin-bottom: -25px;
+}
+
+.form .form-invalid-data input{
+  border: 1px solid #d37171;
+  box-shadow: 2px 3px 4px 0 rgba(200, 77, 77, 0.15);
+}
+
+.form .form-invalid-data-sign{
+  position: relative;
+  display: none;
+  color: #ffffff;
+  line-height: 23px;
+  font-size: 14px;
+  text-align: center;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background-color: #e17c4f;
+  left: 285px;
+  top: -50px;
+}
+
+.form .form-invalid-data-info{
+  display: none;
+  position: relative;
+  color: #c84d4d;
+  font-weight: normal;
+  bottom: 30px;
+  left: 50px;
+}
+
+.form-invalid-data .form-invalid-data-sign,
+.form-invalid-data .form-invalid-data-info{
+  display: block;
+}
+
+.form-valid-data .form-valid-data-sign{
+  display: block;
+}
+
+
+
+
+

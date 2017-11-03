@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """Handles the cart page"""
 from utils import constants
-from utils.helpers import print_page, get_session_user_id, loadhtml
+from utils.helpers import print_page, get_session_user_id, loadhtml, check_user_seesion
 from data.dao import Connection
 
 def __details_html():
@@ -26,5 +26,8 @@ def __build_dynamic_content():
     subtotal = sum(c.total() for c in results)
     return loadhtml("cart.html").replace("**details**", __build_detail_list_html(results)) \
     .replace("**subtotal**", str(subtotal))
-
-print_page('', "Mis carrito", constants.DEFAULT_CSS, __build_dynamic_content())
+if check_user_seesion():
+    print_page('', "Mis carrito", constants.DEFAULT_CSS, __build_dynamic_content())
+else:
+    print "Location: signin.py"
+    print "Content-type: text/plain\n"

@@ -1,18 +1,7 @@
-"""Script for encryption functions"""
-import hashlib
+#!/usr/bin/python
+"""This script contains hash method for encript password in the login form"""
 import os
-
-"""
-import bcrypt
-
-def encrypt_password(raw_password):
-    """"""Encrypts a password""""""
-    master_secret_key = "al_br_7-1_never_forget"
-    salt = bcrypt.gensalt()
-    combo_password = raw_password + salt + master_secret_key
-    hashed_password = bcrypt.hashpw(combo_password, salt)
-    return {"salt": salt, "hash": hashed_password}
-"""
+import hashlib
 
 def check_password(tagged_digest_salt, password):
     """
@@ -34,6 +23,7 @@ def check_password(tagged_digest_salt, password):
     sha.update(salt)
 
     return digest == sha.digest()
+
 
 def make_secret(password):
     """

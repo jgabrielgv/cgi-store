@@ -1,20 +1,20 @@
 
         <div class="login-page">
             <div class="form">
-              <form class="register-form" name="newuser" action="signup.py" method="post">
-                <input type="text" name="name" placeholder="Nombre Completo"/>
-                <input type="text" name="username" placeholder="Usuario"/>
-                <input type="password" name="password" placeholder="Contraseña"/>
-                <input type="text" name="email" placeholder="Correo"/>
-
-                <button>Crear</button>
-                <p class="message">Ya se encuentra registrado <a href="#">Inicie Sesión</a></p>
-              </form>
-              <form class="login-form" name="login" action="signin_get.py" method="post">
-                <input type="text" name="username" placeholder="Usuario"/>
-                <input type="password" name="password" placeholder="Contraseña"/>
+                    <div class="errorClass">
+                </error>
+                </div>
+              <form class="login-form" name="login" action="#action" method="post">
+                <div class="errorClassUser">
+                    <input type="text" title="Usuario" name="username" placeholder="Usuario"/>
+                    </username>
+                </div>
+                <div class="errorClassPass">
+                    <input type="password" title="Contraseña" name="password" placeholder="Contraseña"/>
+                </password>
+                </div>
                 <button>login</button>
-                <p class="message">No esta registrado <a href="#">Cree su cuenta</a></p>
+                <p class="message">No esta registrado <a href="signup.py">Cree su cuenta</a></p>
               </form>
             </div>
           </div>
