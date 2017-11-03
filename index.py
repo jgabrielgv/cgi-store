@@ -4,6 +4,13 @@
 from data.dao import Connection
 from utils.helpers import loadhtml, print_page
 from utils import constants
+from utils.email_handler import SmtpClient
+
+"""
+client = SmtpClient("jgmezvargas@gmail.com", ["lm.sanchezvargas@gmail.com", "jgabriel.gv@hotmail.com"])
+client.build_registration_template()
+client.send_email()
+"""
 
 #check session status
 #print "Content-type: text/html\n\n"

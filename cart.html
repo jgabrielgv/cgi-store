@@ -1,1 +1,28 @@
 
+<table>
+    <thead>
+        <th>Producto</th>
+        <th>Precio</th>
+        <th>Cantidad</th>
+    </thead>
+    <tbody>
+        **details**
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="2"></td>
+            <td>**subtotal**</td>
+        </tr>
+    </tfoot>
+</table>
+<form id="frmConfirmPayment" method="post" action="confirm_payment.py">
+        <input type="button" id="btnConfirmPayment" value="Realizar pago">
+</form>
+
+<script type="text/javascript">
+    var element = document.getElementById("btnConfirmPayment");
+    element.addEventListener("click", function(evt) {
+        if(confirm("¿Desea confirmar el pago de los productos en el carrito?"))
+            document.getElementById("frmConfirmPayment").submit();
+    });
+</script>

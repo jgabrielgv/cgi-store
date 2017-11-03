@@ -2,7 +2,7 @@
 """This script shows the myproducts page"""
 
 from data.dao import Connection
-from utils.helpers import loadhtml, print_page
+from utils.helpers import loadhtml, print_page, get_session_user_id
 from utils import constants
 
 #check session status
@@ -16,10 +16,7 @@ def __details_html():
                 <td>{3}</td>
             </tr>"""
 
-def __build_detail_list_html():
-    user_id = 2
-    conn = Connection()
-    product_list = conn.fetch_products_by_user_id(user_id)
+def __build_detail_list_html(product_list):
     detail_list = []
     if not product_list:
         return ""
@@ -28,7 +25,9 @@ def __build_detail_list_html():
     return ''.join([x for x in detail_list])
 
 def __build_dynamic_content():
-    return loadhtml("myproducts.html").replace("**details**", __build_detail_list_html())
+    conn = Connection()
+    product_list = conn.fetch_products_by_user_id(get_session_user_id())
+    return loadhtml("myproducts.html").replace("**details**", __build_detail_list_html(product_list))
 
 #print __build_detail_list_html()
 print_page('', "Mis productos", constants.DEFAULT_CSS, __build_dynamic_content())

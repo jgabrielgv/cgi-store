@@ -71,7 +71,7 @@ CONSTRAINT fk_invoice_header_user_id FOREIGN KEY (user_id) REFERENCES user(user_
 );
 
 create table if not exists invoice_detail (
-    invoice_detail_id int not null,
+    invoice_detail_id int not null AUTO_INCREMENT,
     invoice_no int not null,
 product_id int not null,
 descr varchar(100),

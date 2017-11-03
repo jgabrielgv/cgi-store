@@ -3,7 +3,7 @@
 from utils.helpers import current_date
 from utils.secrets import check_password, make_secret
 import mysql.connector as mariadb
-from data.models import Product, ProductDetail, User
+from data.models import Product, ProductDetail, User, ShoppingCartDetail
 #from getpass import getpass
 
 class Connection(object):
@@ -84,6 +84,23 @@ class Connection(object):
     def errors(self):
         """Returns the error list"""
         return self.__error_dict
+
+    def fetch_cart_products_by_user_id(self, user_id):
+        """Fetch the cart products from a specific user"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = []
+        try:
+            sql_query = """select p.code, p.descr, p.price, u.username, sc.quantity/*, price * quantity as total*/ from product p inner join shopping_cart sc on p.product_id = sc.product_id inner join user u on sc.user_id = u.user_id and sc.user_id = %s;"""
+            cursor.execute(sql_query, (user_id,))
+            query = cursor.fetchall()
+            for code, descr, price, username, quantity in query:
+                result.append(ShoppingCartDetail(code, descr, price, username, quantity))
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+        finally:
+            self.__close_connection(cursor)
+        return result
 
     def fetch_user(self, user_name, passwd):
         """Fetch an specific user by username"""
@@ -181,14 +198,50 @@ class Connection(object):
             self.__close_connection(cursor)
         return True
 
+    def place_order(self, user_id):
+        """Checkout the current"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            sql_query = """select quantity from shopping_cart where user_id = %s limit 1;"""
+            cursor.execute(sql_query, (user_id,))
+            query = cursor.fetchone()
+            if not query:
+                self.__log("No hay productos para pagar.")
+                return result
+
+            sql_query = """insert into invoice_header (user_id, descr, subtotal, taxes, total) 
+            select u.user_id, 'Invoice' as descr, sum(p.price * sc.quantity) as subtotal, 0 as taxes, 
+            sum(p.price * sc.quantity) as total from product p 
+            inner join shopping_cart sc on p.product_id = sc.product_id 
+            inner join user u on sc.user_id = u.user_id and sc.user_id = %s;"""
+            cursor.execute(sql_query, (user_id,))
+
+            sql_query = """insert into invoice_detail(invoice_no, product_id, descr, quantity, price, discount) 
+            select %s as invoice_no, p.product_id, p.descr, sc.quantity, p.price, 0 as discount from product p 
+            inner join shopping_cart sc on p.product_id = sc.product_id 
+            inner join user u on sc.user_id = u.user_id and sc.user_id = %s;"""
+            cursor.execute(sql_query, (cursor.lastrowid, user_id,))
+
+            sql_query = """delete from shopping_cart where user_id = %s"""
+            cursor.execute(sql_query, (user_id,))
+
+            self.__db.commit()
+        except mariadb.Error as error:
+            self.__db.rollback()
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
+        return True
+
     def valid_product_to_create(self, product, cursor):
         """Validate product properties bofore save, for example, that the code_id does not exists yet"""
         result = False
         try:
             sql_query_user = """select product_id from product where code= %s limit 1"""
-            #print "<p>Query: %s</p>" % (sql_query_user % (product.code))
             cursor.execute(sql_query_user, (product.code,))
-            #print "<p>row count validate: %d</p>" % (cursor.rowcount)
             if cursor.fetchall():
                 self.__log("El c&ograve;digo digitado ya se encuentra registrado en el sistema.")
                 return result

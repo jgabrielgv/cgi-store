@@ -40,9 +40,15 @@ class ShoppingCart(object):
         self.product_id = product_id
         self.quantity = quantity
 
-class ShoppingCartDetail(ProductDetail):
-    def __init__(self, quantity):
+class ShoppingCartDetail(object):
+    """def __init__(self, quantity):
         super(ShoppingCartDetail, self).__init__(quantity)
+        self.quantity = quantity"""
+    def __init__(self, code, descr, price, username, quantity):
+        self.code = code
+        self.descr = descr
+        self.price = price
+        self.username = username
         self.quantity = quantity
 
     def total(self):
