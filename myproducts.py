@@ -2,7 +2,7 @@
 """This script shows the myproducts page"""
 
 from data.dao import Connection
-from utils.helpers import loadhtml, print_page, get_session_user_id
+from utils.helpers import loadhtml, print_page, get_session_user_id, check_user_seesion
 from utils import constants
 
 #check session status
@@ -30,4 +30,8 @@ def __build_dynamic_content():
     return loadhtml("myproducts.html").replace("**details**", __build_detail_list_html(product_list))
 
 #print __build_detail_list_html()
-print_page('', "Mis productos", constants.DEFAULT_CSS, __build_dynamic_content())
+if check_user_seesion():
+    print_page('', "Mis productos", constants.DEFAULT_CSS, __build_dynamic_content())
+else:
+    print "Location: signin.py"
+    print "Content-type: text/plain\n"
