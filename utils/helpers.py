@@ -1,17 +1,39 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """This script contains the helper functions used across the website"""
 
-import Cookie 
-import time
-import session
 import sys
 import os
-from urllib2 import unquote
+from http import cookies
+
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+#print ("Script path: %s" % (__SCRIPT_DIR))
+#print (sys.path)
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
+#print("Paso")
+#print (sys.path)
+
+import time
+#print("After time")
+from utils import session
+
+#print("Entro3")
+
+from os import environ
+from urllib import parse
 from datetime import datetime
+#import urlparse
+import string
 
 def check_user_seesion():
     try:
-        cookie = Cookie.SimpleCookie(os.environ["HTTP_COOKIE"])
+        if not "HTTP_COOKIE" in os.environ:
+            return False
+        cookie = cookies.SimpleCookie(os.environ["HTTP_COOKIE"])
         sess = session.Session(expires='Thu, 01 Jan 1970 00:00:00 GMT', cookie_path='/')
         #lastvisit = sess.data.get('lastvisit')
         sess.data['lastvisit'] = repr(time.time())
@@ -22,7 +44,7 @@ def check_user_seesion():
         else:
             return True
     
-    except (Cookie.CookieError, KeyError):
+    except cookies.CookieError as error:
         return False
         #print "Content-type: text/plain\n"
         #print "El usuario no esta Logueado"
@@ -31,7 +53,7 @@ def current_date():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def get_session_user_id(): 
-    return 2 
+    return 2
 
 def is_float(value):
     try:
@@ -40,12 +62,13 @@ def is_float(value):
     except ValueError:
         return False
 
-def print_page(html_file, title, css_file='', body=''):
+def print_page(html_file, title, css_file='', body='', scripts=''):
     """Prints a page based on the html and css parameter specifications"""
-    print "Content-type: text/html\n\n"
+    print ("Content-type: text/html\n\n")
     if not body and html_file:
         body = loadhtml(html_file)
-    wholepage = pagetemplate.replace('**title**', title).replace('**css**', css_file).replace('**body**', body)
+    wholepage = pagetemplate.replace('**title**', title).replace('**css**', css_file) \
+    .replace('**body**', body).replace('**scripts**', scripts)
     ucgiprint(wholepage)
 
 def ucgiprint(inline='', unbuff=False, encoding='UTF-8'):
@@ -56,17 +79,34 @@ def ucgiprint(inline='', unbuff=False, encoding='UTF-8'):
     after every write (default not).
     """
     line_end = '\r\n'
-    if encoding:
-        inline = inline.encode(encoding)
+    #if encoding:
+        #inline = inline.encode('iso-8859-1')
         # prob. not necessary as line endings will be the
         # same in most encodings
-        line_end = line_end.encode(encoding)
-    sys.stdout.write(inline)
-    sys.stdout.write(line_end)
+        #line_end = line_end.encode('iso-8859-1')
+    #sys.stdout.buffer.write(inline)
+    #sys.stdout.buffer.write(line_end)
+    #print ("Content-type: text/html\n\n")
+    #print ("Number of lines: %s" % str(inline.encode('latin1')).splitlines())
+    #for line in str(inline.encode('latin1')).splitlines():
+    #    sys.stdout.write(line)
+
+    for line in inline.splitlines(True):
+        sys.stdout.write(line.encode('ascii', 'replace').decode('utf-8'))
+        #sys.stdout.buffer.write(line.encode('utf-8'))
+    #sys.stdout.write(str(inline.encode('latin1')))
+    sys.stdout.write(line_end.encode('utf-8').decode('utf-8'))
+    
     if unbuff:
         sys.stdout.flush()
+    #print (inline.encode('iso-8859-1'))
+    #print (line_end.encode('iso-8859-1'))
 
 def loadhtml(filename):
+    dir = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+    path = os.path.normpath(os.path.join(dir, '../html'))
+
+    filename = "%s/%s" % (path, filename)
     with open(filename, 'rb') as myfile:
         body = myfile.read().decode("UTF-8").replace('\n', '')
     return body
@@ -93,26 +133,37 @@ valiadtionMessage = '''
 '''
 # let's define out html values and templates
 pagetemplate = '''
-    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0
-    Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-    <html xmlns="http://www.w3.org/1999/xhtml"
-            lang="en" xml:lang="en">
+    <!DOCTYPE html>
+    <html lang="es">
             <head>
                     <title>**title**</title>
                     <meta http-equiv="Content-Type"
                             content="text/html;
                             charset=UTF-8" />
                             **css**
-                            <link rel="stylesheet" href="css/font-awesome.min.css">
-                    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script> -->
+                            <link rel="stylesheet" href="../css/font-awesome.min.css">
+                    
             </head>
             <body>
                     **body**
-                    <script src="js/main.js"></script>
+                    **scripts**
+                    <script src="../js/main.js"></script>
             </body>
     </html>
     '''
+
+def is_request():
+    return 'REQUEST_METHOD' in environ
+
+def get_uri_param(param_name):
+    if not "REQUEST_URI" in environ:
+        return ''
+    parsed = parse.urlparse(environ["REQUEST_URI"])
+    values = parse.urlparse.parse_qs(parsed.query)
+    return values[param_name] if param_name in values else ''
+
+def lstrip_string(value):
+    return value.lstrip() if value else value
 
 class FormParser(object):
     """Form parser class"""
@@ -137,15 +188,22 @@ class FormParser(object):
         """Parse the stdin parameters""" 
         self.parse_values(sys.stdin.read()) 
 
+    def discover_values(self):
+        if 'REQUEST_METHOD' in environ:
+            if environ['REQUEST_METHOD'] == 'GET':
+                self.parse_get_values()
+            elif environ["REQUEST_METHOD"] == 'POST':
+                self.parse_post_values()
+        else:
+            self.parse_values('')
+
     def parse_values(self, input_value):
         """Parse parameters"""
         self.reset_properties()
         default_return_value = []
-
         input_values = input_value.split("&")
         if not input_values:
             return default_return_value
-
         filtered_list = [x for x in input_values if "=" in x]
         if not filtered_list:
             return default_return_value
@@ -155,7 +213,7 @@ class FormParser(object):
             key_value = value.split("=")
             if not key_value or key_value[0] in params_definition:
                 continue
-            self.__elements[key_value[0]] = unquote(key_value[1]) if len(key_value) > 1 else ""
+            self.__elements[key_value[0]] = parse.unquote_plus(key_value[1]) if len(key_value) > 1 else ""
             self.__elements_count += 1
             params_definition.append(key_value[0])
 

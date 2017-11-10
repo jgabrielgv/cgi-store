@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """Handles the email functions"""
 
 from email.mime.multipart import MIMEMultipart
@@ -6,6 +6,13 @@ from email.mime.text import MIMEText
 #from email.MIMEImage import MIMEImage
 import smtplib
 import collections
+
+import os
+import sys
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
 
 class SmtpClient(object):
     """Creates an stmp client to send emails"""

@@ -1,5 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """Handles the connection between Python and MariaDB"""
+
+import os
+import sys
+import binascii
+
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
 from utils.helpers import current_date
 from utils.secrets import check_password, make_secret
 import mysql.connector as mariadb
@@ -45,9 +55,9 @@ class Connection(object):
         try:
             if not self.valid_user_to_create(user,  cursor):
                 return result
-            sql_query = """insert into user (username, email, password, entry_date) values (%s, %s, %s, %s)"""
+            sql_query = """insert into user (name, username, email, password, salt, entry_date) values (%s, %s, %s, %s, %s, %s)"""
             hashed_password = make_secret(user.password)
-            cursor.execute(sql_query, (user.username, user.email, hashed_password, current_date(),))
+            cursor.execute(sql_query, ('Juanchito', user.username, user.email, hashed_password['password'], hashed_password['salt'], current_date(),))
             if not cursor.rowcount:
                 self.__log("No se ha podido crear la cuenta. Favor intente de nuevo.")
                 return result
@@ -72,6 +82,25 @@ class Connection(object):
             #print "<p>rowcount1: %d</p>" % (cursor.rowcount)
             if not cursor.rowcount:
                 self.__log("No se ha podido crear el producto. Favor intente de nuevo.")
+                return result
+            self.__db.commit()
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
+        return True
+
+    def create_suggestion(self, suggestion):
+        """Creates a suggestion for a register or not register user"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            sql_query = """insert into suggestion (user_id, entry_date, reason, message, name, email) values (%s, %s, %s, %s, %s, %s)"""
+            cursor.execute(sql_query, (suggestion.user_id, current_date(), suggestion.reason, suggestion.message, suggestion.name, suggestion.email,))
+            if not cursor.rowcount:
+                self.__log("No se ha podido crear la sugerencia. Favor intente de nuevo.")
                 return result
             self.__db.commit()
         except mariadb.Error as error:
@@ -109,15 +138,16 @@ class Connection(object):
         result = {}
         try:
             error_message = "Usuario y contras&eacute;a no coinciden."
-            sql_query = """select user_id, username, email, password, entry_date from user where username = %s"""
+            sql_query = """select user_id, username, email, password, salt, entry_date from user where username = %s"""
             cursor.execute(sql_query, (user_name,))
             dataset = cursor.fetchall()
             if not dataset:
                 self.__log(error_message)
                 return result
-            for user_id, user_name, email, password, entry_date in dataset:
-                user = User(user_id, user_name, email, password, entry_date)
-            if not check_password(user.password, passwd):
+            for user_id, user_name, email, password, salt, entry_date in dataset:
+                user = User(user_id, user_name, email, password, salt, entry_date)
+            #print ("Content-type: text/plain\n")
+            if not check_password(user, passwd):
                 self.__log(error_message)
                 user = result
             return user
@@ -161,6 +191,8 @@ class Connection(object):
             self.__close_connection(cursor) 
         return result
 
+    #.get_value("search-keyboards", '')
+
     def fetch_products(self):
         """Fetch all products"""
         self.__open_connection()
@@ -177,6 +209,25 @@ class Connection(object):
         finally:
             self.__close_connection(cursor)
         return result
+
+    def fetch_products_by_keywords(self, keywords=''):
+        result = []
+        if not keywords:
+            return result
+        """Fetch all products by keyboard"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        try:
+            sql_query = """select p.code, p.descr, p.price, p.entry_date, u.username from product p inner join user u on p.user_id = u.user_id where p.code like concat('%', %(keywords)s, '%') or p.descr like concat('%', %(keywords)s, '%')"""
+            cursor.execute(sql_query, {"keywords": keywords})
+            query = cursor.fetchall()
+            for code, descr, price, entry_date, username in query:
+                result.append(ProductDetail(0, username, code, entry_date, descr, price))
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+        finally:
+            self.__close_connection(cursor)
+        return result
     
     def increase_cart_qty(self, cart): 
         """Creates an article into the database""" 
@@ -185,7 +236,7 @@ class Connection(object):
         result = False 
         try: 
             sql_query = """insert into shopping_cart (user_id, product_id, quantity) values  
-            (%{user_id}s, %{product_id}s %{quantity}s) on duplicate key update quantity = quantity + %{quantity}s;""" 
+            (%(user_id)s, %(product_id)s %(quantity)s) on duplicate key update quantity = quantity + %(quantity)s;""" 
             cursor.execute(sql_query, { "user_id": cart.user_id, "product_id": cart.product_id, "quantity": cart.quantity }) 
             if not cursor.rowcount: 
                 self.__log("No se ha podido realizar la transaccion. Favor intente de nuevo.") 
@@ -235,6 +286,22 @@ class Connection(object):
         finally: 
             self.__close_connection(cursor) 
         return True 
+
+    def valid_product_to_create(self, product, cursor):
+        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+        result = False
+        try:
+            sql_query_user = """select product_id from product where code= %s limit 1"""
+            #print "<p>Query: %s</p>" % (sql_query_user % (product.code))
+            cursor.execute(sql_query_user, (product.code,))
+            #print "<p>row count validate: %d</p>" % (cursor.rowcount)
+            if cursor.fetchall():
+                self.__log("El código digitado ya se encuentra registrado en el sistema.")
+                return result
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        return True
 
     def valid_user_to_create(self, user, cursor):
         """Validate product properties bofore save, for example, that the code_id does not exists yet"""

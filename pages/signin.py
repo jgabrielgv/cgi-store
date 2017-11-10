@@ -1,11 +1,18 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """This script shows the login page"""
 
+import os
 import sys
+
+#PACKAGE_PARENT = 
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
 from utils.helpers import pagetemplate, valiadtionMessage, ucgiprint, loadhtml, FormParser
+from utils import constants
 from data.dao import Connection
-
-
 
 user = False
 err = False
@@ -18,7 +25,7 @@ sys.stdout.flush()
 #print "Content-type: text/html\n\n"
 
 def cretaeSession():
-    print "Location: cookie.py"
+    print ("Location: cookie.py")
 
 def validate_properties():
     """Validate the product properties before save it to database"""
@@ -50,7 +57,6 @@ if query_string:
     else:
         result = validate_properties()
 
-css = '<link rel="stylesheet" type="text/css" href="css/styles.css">'
 body = loadhtml('signin.html')
 
 if result:
@@ -68,5 +74,6 @@ if result:
 if err:
     body = body.replace('</error>', htmlerror).replace('errorClass', 'form-invalid-data')
 
-wholepage = pagetemplate.replace('**title**', 'Log In').replace('**css**', css).replace('**body**', body).replace('#action', 'signin.py')
+print ("Content-type: text/html\n\n")
+wholepage = pagetemplate.replace('**title**', 'Log In').replace('**css**', constants.DEFAULT_CSS).replace('**body**', body).replace('#action', 'signin.py')
 ucgiprint(wholepage)

@@ -1,10 +1,18 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """This script stores the post action when sign in"""
 
-#from os import getenv
+import os
 import sys
-from helpers import FormParser
-from dao import Connection
+
+#PACKAGE_PARENT = 
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
+#from os import getenv
+from utils.helpers import FormParser
+from data.dao import Connection
 
 query_string = sys.stdin.read() # reads the parameters, username=xxx&password=xxx
 parser = FormParser()

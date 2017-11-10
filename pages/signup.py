@@ -1,6 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """This script shows the signup screen"""
+
+import os
 import sys
+
+#PACKAGE_PARENT = 
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
 from data.dao import Connection
 from data.models import User
 from utils.helpers import FormParser, pagetemplate, valiadtionMessage, ucgiprint, loadhtml
@@ -44,7 +53,7 @@ if query_string:
     else:
         result = validate_properties()
 
-css = '<link rel="stylesheet" type="text/css" href="css/styles.css">'
+css = '<link rel="stylesheet" type="text/css" href="../css/styles.css">'
 body = loadhtml('signup.html')
 
 if result:
@@ -67,12 +76,14 @@ if result:
 
 if creeateAccount:
     #save to session
-    print "Location: signup.py"
+    print ("Content-type: text/html\n\n")
+    print ("Location: signup.py")
 else:
     if conn is not None:
         err = str(conn.errors())
         body = body.replace('</error>', err).replace('errorClass', 'form-invalid-data')
 
+print ("Content-type: text/html\n\n")
 wholepage = pagetemplate.replace('**title**', 'Sign Up').replace('**css**', css).replace('**body**', body).replace('#action', 'signup.py')
 ucgiprint(wholepage)
     

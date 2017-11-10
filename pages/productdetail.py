@@ -1,5 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """Shows a product detail"""
+
+import os
+import sys
+
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
+#print ("Content-type: text/html\n\n")
 
 from data.dao import Connection
 from utils.helpers import FormParser, loadhtml, print_page

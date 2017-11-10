@@ -1,8 +1,17 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """This script shows the logout an user from his current session"""
-import time
-import session
 
+import os
+import sys
+
+#PACKAGE_PARENT = 
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
+import time
+from utils import session
 
 sess = session.Session(expires='Thu, 01 Jan 1970 00:00:00 GMT', cookie_path='/')
 # expires can be reset at any moment:
@@ -23,14 +32,15 @@ sess.cookie['sid']['expires'] = 'Thu, 01 Jan 1970 00:00:00 GMT'
 #sess.cookie["sid"] = ''
 sess.close()
 #sess.cookie.clear()
-print "Location: signin.py"
+#print "Content-type: text/html\n\n"
+print ("Location: signin.py")
 #print 'Set-Cookie:sid=null;'
 #print "Content-type: text/html\n\n"
-print """\
+print ("""\
 %s
 Content-Type: text/plain\n
 sess.cookie = %s
 %s
-""" % (sess.cookie, sess.cookie, message)
+""" % (sess.cookie, sess.cookie, message))
 
 #print "Content-type: text/html\n\n"

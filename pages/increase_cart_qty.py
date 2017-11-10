@@ -1,4 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+
+import os
+import sys
+
+#PACKAGE_PARENT = 
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
 
 from data.dao import Connection
 from data.models import ShoppingCart
@@ -21,12 +30,12 @@ def __process_update_cart_qty():
     product_id = parser.get_value("product_id", "")
     quantity = parser.get_value("quantity", "")
     if not __validate_properties(user_id, product_id, quantity):
-        print "Location: index.py"
+        print ("Location: index.py")
     conn = Connection()
     if not conn.increase_cart_qty(ShoppingCart(user_id, product_id, quantity)):
         #print errors
         a = 1
 
 __process_update_cart_qty()
-print "Location: cart.py"
-print "Content-type: text/html\n\n"
+print ("Location: cart.py")
+print ("Content-type: text/html\n\n")

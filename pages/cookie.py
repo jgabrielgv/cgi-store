@@ -1,8 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """This script shows the login page"""
-import time
-import session
+import os
+import sys
 
+#PACKAGE_PARENT = 
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
+import time
+from utils import session
 
 sess = session.Session(expires=365*24*60*60, cookie_path='/')
 # expires can be reset at any moment:
@@ -19,13 +27,13 @@ else:
     message = 'New session'
 # Save the current time in the session
 sess.data['lastvisit'] = repr(time.time())
-print "Location: index.py"
-print """\
+print ("Location: index.py")
+print ("""\
 %s
 Content-Type: text/plain\n
 sess.cookie = %s
 sess.data = %s
 %s
-""" % (sess.cookie, sess.cookie, sess.data, message)
+""" % (sess.cookie, sess.cookie, sess.data, message))
 
 #print "Content-type: text/html\n\n"

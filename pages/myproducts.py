@@ -1,5 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+# coding=iso-8859-1
 """This script shows the myproducts page"""
+
+import os
+import sys
+
+#PACKAGE_PARENT = 
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
 
 from data.dao import Connection
 from utils.helpers import loadhtml, print_page, get_session_user_id, check_user_seesion
@@ -33,5 +43,5 @@ def __build_dynamic_content():
 if check_user_seesion():
     print_page('', "Mis productos", constants.DEFAULT_CSS, __build_dynamic_content())
 else:
-    print "Location: signin.py"
-    print "Content-type: text/plain\n"
+    print ("Location: signin.py")
+    print ("Content-type: text/plain\n")

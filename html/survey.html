@@ -1,0 +1,38 @@
+<div class="login-page">
+    <div class="form">
+        <div class="errorClass">
+            </error>
+        </div>
+        <form class="register-form" id="suge" name="newuser" onSubmit="JavaScript:create_sugge('suge', event)">
+            <div class="errorClassUser">
+                <input type="text" name="name" placeholder="Nombre Completo" />
+                </username>
+            </div>
+            <div class="errorClassUser">
+                <input type="text" name="reason" placeholder="Tema" />
+                </username>
+            </div>
+            <div class="errorClassPass">
+                <textarea rows="4" cols="50" name="message" placeholder="Sugerencia"></textarea>
+                </password>
+            </div>
+            <div class="errorClassEmail">
+                <input type="text" name="email" placeholder="Correo" />
+                </email>
+            </div>
+            <button>Crear</button>
+            <p class="message">
+                <a href="signin.py">Inicie Sesión</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function create_sugge(data, event) {
+        var form = document.getElementById(data);
+        //http://localhost/cgistore/pages/survey_post.py
+        sendData('survey_post.py', form);
+        event.preventDefault();
+    }
+</script>

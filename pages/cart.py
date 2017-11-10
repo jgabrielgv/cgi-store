@@ -1,5 +1,14 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """Handles the cart page"""
+import os
+import sys
+
+#PACKAGE_PARENT = 
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
 from utils import constants
 from utils.helpers import print_page, get_session_user_id, loadhtml, check_user_seesion
 from data.dao import Connection
@@ -29,5 +38,5 @@ def __build_dynamic_content():
 if check_user_seesion():
     print_page('', "Mis carrito", constants.DEFAULT_CSS, __build_dynamic_content())
 else:
-    print "Location: signin.py"
-    print "Content-type: text/plain\n"
+    print ("Location: signin.py")
+    print ("Content-type: text/plain\n")
