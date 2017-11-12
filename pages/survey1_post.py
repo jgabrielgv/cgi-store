@@ -3,9 +3,14 @@
 import sys
 import json
 import os
-import session
+
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
 import time
-from utils.helpers import FormParser
+from utils.helpers import FormParser, session
 from data.dao import Connection
 from data.models import Suggestion, User
 
@@ -73,23 +78,23 @@ if result:
 
 if Fordiben is not None:
     payload = json.JSONEncoder().encode({'errors': 'user not autorize'})
-    print "Status: 403 Forbidden"
-    print "Content-Type: application/json"
-    print "Content-Length: %d" % (len(payload))
-    print ""
-    print payload 
+    print("Status: 403 Forbidden")
+    print("Content-Type: application/json")
+    print("Content-Length: %d" % (len(payload)))
+    print("")
+    print(payload)
 elif __ERRORS:
     payload = json.dumps(__ERRORS) 
-    print "Status: 400 Bad Request"
-    print "Content-Type: application/json"
-    print "Content-Length: %d" % (len(payload))
-    print ""
-    print payload 
+    print("Status: 400 Bad Request")
+    print("Content-Type: application/json")
+    print("Content-Length: %d" % (len(payload)))
+    print("")
+    print(payload)
 else:
     #payload = json.JSONEncoder().encode({'cookie': sess.cookie['sid'].value, 'message': message, 'reason': reason, 'user_id': creeateSuggestion})
     payload = json.JSONEncoder().encode({'response': 'ok'})
-    print "Status: 200 OK"
-    print "Content-Type: application/json"
-    print "Content-Length: %d" % (len(payload))
-    print ""
-    print payload 
+    print("Status: 200 OK")
+    print("Content-Type: application/json")
+    print("Content-Length: %d" % (len(payload)))
+    print("")
+    print(payload )

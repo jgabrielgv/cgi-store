@@ -12,7 +12,7 @@ if not __SCRIPT_DIR in sys.path:
 import string
 from data.dao import Connection
 from utils import helpers
-from utils.helpers import print_page, loadhtml, check_user_seesion, FormParser, is_request, get_uri_param
+from utils.helpers import print_page, loadhtml, check_user_seesion, FormParser, is_request
 from utils import constants, helpers
 #from utils.email_handler import SmtpClient
 

@@ -1,7 +1,14 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """This script shows the login page"""
+import os
 import sys
 import json
+
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
 from utils.helpers import FormParser
 from data.dao import Connection
 from data.models import Suggestion
@@ -55,16 +62,15 @@ if result:
 
 if __ERRORS:
     payload = json.dumps(__ERRORS) 
-    print "Status: 400 Bad Request"
-    print "Content-Type: application/json"
-    print "Content-Length: %d" % (len(payload))
-    print ""
-    print payload 
+    print("Status: 400 Bad Request")
+    print("Content-Type: application/json")
+    print("Content-Length: %d" % (len(payload)))
+    print("")
+    print(payload)
 else:
     payload = json.JSONEncoder().encode({'response': 'ok'})
-    print "Status: 200 OK"
-    print "Content-Type: application/json"
-    print "Content-Length: %d" % (len(payload))
-    print ""
-    print payload
-
+    print("Status: 200 OK")
+    print("Content-Type: application/json")
+    print("Content-Length: %d" % (len(payload)))
+    print("")
+    print(payload)

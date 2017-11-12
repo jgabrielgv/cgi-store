@@ -39,9 +39,9 @@ def create_cookie(username):
 
     date = datetime.fromtimestamp(int(sess.cookie['sid']['expires'])).strftime('%Y-%m-%d %H:%M:%S')
     conn.insert_user_cookie(sess.cookie['sid'].value, username, date)
-    #print("Content-type: text/html\n\n")
-    #print(sess.cookie)
-    #print("Location: index.py")
+    print("Location: index.py")
+    print(sess.cookie)
+    print("Content-type: text/html\n\n")
 
 def check_user_seesion():
     try:
@@ -88,7 +88,7 @@ def is_float(value):
         return False
 
 def format_cookie_path(cookie_id):
-   return config.SESSION_FILES_ROOT_PATH + '/session/sess_' + cookie_id# + '.db'
+    return config.SESSION_FILES_ROOT_PATH + '/session/sess_' + cookie_id# + '.db'
 
 def print_page(html_file, title, css_file='', body='', scripts=''):
     """Prints a page based on the html and css parameter specifications"""
@@ -182,13 +182,6 @@ pagetemplate = '''
 
 def is_request():
     return 'REQUEST_METHOD' in environ
-
-def get_uri_param(param_name):
-    if not "REQUEST_URI" in environ:
-        return ''
-    parsed = parse.urlparse(environ["REQUEST_URI"])
-    values = parse.urlparse.parse_qs(parsed.query)
-    return values[param_name] if param_name in values else ''
 
 def print_status_code(result, success_content={}, error_content={}, \
  success_code='Status: 200 success', error_code='Status: 400 Bad Request'):
