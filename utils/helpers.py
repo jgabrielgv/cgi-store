@@ -1,23 +1,66 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """This script contains the helper functions used across the website"""
 
-import Cookie 
-import time
-import session
+import json
 import sys
 import os
-from urllib2 import unquote
+from http import cookies
+
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
+import session
+import Cookie 
+import time
+from utils import constants, session
+from os import environ
+from urllib import parse
 from datetime import datetime
+import string
+from datetime import datetime
+from data.dao import Connection
+
+def create_cookie(username):
+    sess = session.Session(expires=365*24*60*60, cookie_path='/')
+    lastvisit = sess.data.get('lastvisit')
+    if lastvisit:
+        message = 'Welcome back. Your last visit was at ' + \
+            time.asctime(time.gmtime(float(lastvisit)))
+    else:
+        message = 'New session'
+    # Save the current time in the session
+    conn = Connection()
+    sess.data['lastvisit'] = repr(time.time())
+ 
+    date = datetime.fromtimestamp(int(sess.cookie['sid']['expires'])).strftime('%Y-%m-%d %H:%M:%S')
+    conn.insert_user_cookie(sess.cookie['sid'].value, username, date)
+    print "Location: index.py"
+    
+    print sess.cookie
+    print "Content-type: text/html\n\n"
 
 def check_user_seesion():
     try:
         cookie = Cookie.SimpleCookie(os.environ["HTTP_COOKIE"])
-        sess = session.Session(expires='Thu, 01 Jan 1970 00:00:00 GMT', cookie_path='/')
+        sess = session.Session(expires=365*24*60*60, cookie_path='/')
         #lastvisit = sess.data.get('lastvisit')
         sess.data['lastvisit'] = repr(time.time())
         #print print_page('index.html', "Inicio")
         #print cookie["sid"].value
-        if cookie["sid"].value != sess.cookie["sid"].value:
+        conn = Connection()
+        
+        result = conn.valid_username_cookie_id(sess.cookie['sid'].value)
+        cookie_file = '/Users/mcanales/Sites' + '/session/sess_' + sess.cookie['sid'].value + '.db'
+        isfile = os.path.exists(cookie_file)
+        #print result
+        #print isfile
+        #print cookie["sid"].value != sess.cookie["sid"].value
+        if not result or not isfile:
             return False
         else:
             return True
@@ -27,11 +70,14 @@ def check_user_seesion():
         #print "Content-type: text/plain\n"
         #print "El usuario no esta Logueado"
 
+def check_user_session():
+    return check_user_seesion()
+
 def current_date():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def get_session_user_id(): 
-    return 2 
+    return 2
 
 def is_float(value):
     try:
@@ -40,12 +86,13 @@ def is_float(value):
     except ValueError:
         return False
 
-def print_page(html_file, title, css_file='', body=''):
+def print_page(html_file, title, css_file='', body='', scripts=''):
     """Prints a page based on the html and css parameter specifications"""
-    print "Content-type: text/html\n\n"
+    print("Content-type: text/html\n\n")
     if not body and html_file:
         body = loadhtml(html_file)
-    wholepage = pagetemplate.replace('**title**', title).replace('**css**', css_file).replace('**body**', body)
+    wholepage = pagetemplate.replace('**title**', title).replace('**css**', css_file) \
+    .replace('**body**', body).replace('**scripts**', scripts)
     ucgiprint(wholepage)
 
 def ucgiprint(inline='', unbuff=False, encoding='UTF-8'):
@@ -56,17 +103,34 @@ def ucgiprint(inline='', unbuff=False, encoding='UTF-8'):
     after every write (default not).
     """
     line_end = '\r\n'
-    if encoding:
-        inline = inline.encode(encoding)
+    #if encoding:
+        #inline = inline.encode('iso-8859-1')
         # prob. not necessary as line endings will be the
         # same in most encodings
-        line_end = line_end.encode(encoding)
-    sys.stdout.write(inline)
-    sys.stdout.write(line_end)
+        #line_end = line_end.encode('iso-8859-1')
+    #sys.stdout.buffer.write(inline)
+    #sys.stdout.buffer.write(line_end)
+    #print ("Content-type: text/html\n\n")
+    #print ("Number of lines: %s" % str(inline.encode('latin1')).splitlines())
+    #for line in str(inline.encode('latin1')).splitlines():
+    #    sys.stdout.write(line)
+
+    for line in inline.splitlines(True):
+        sys.stdout.write(line.encode('ascii', 'replace').decode('utf-8'))
+        #sys.stdout.buffer.write(line.encode('utf-8'))
+    #sys.stdout.write(str(inline.encode('latin1')))
+    sys.stdout.write(line_end.encode('utf-8').decode('utf-8'))
+    
     if unbuff:
         sys.stdout.flush()
+    #print (inline.encode('iso-8859-1'))
+    #print (line_end.encode('iso-8859-1'))
 
 def loadhtml(filename):
+    dir = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+    path = os.path.normpath(os.path.join(dir, '../html'))
+
+    filename = "%s/%s" % (path, filename)
     with open(filename, 'rb') as myfile:
         body = myfile.read().decode("UTF-8").replace('\n', '')
     return body
@@ -93,26 +157,52 @@ valiadtionMessage = '''
 '''
 # let's define out html values and templates
 pagetemplate = '''
-    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0
-    Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-    <html xmlns="http://www.w3.org/1999/xhtml"
-            lang="en" xml:lang="en">
+    <!DOCTYPE html>
+    <html lang="es">
             <head>
                     <title>**title**</title>
                     <meta http-equiv="Content-Type"
                             content="text/html;
                             charset=UTF-8" />
                             **css**
-                            <link rel="stylesheet" href="css/font-awesome.min.css">
-                    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script> -->
+                            <link rel="stylesheet" href="../css/font-awesome.min.css">
+                    
             </head>
             <body>
                     **body**
-                    <script src="js/main.js"></script>
+                    **scripts**
+                    <script src="../js/main.js"></script>
             </body>
     </html>
     '''
+
+def is_request():
+    return 'REQUEST_METHOD' in environ
+
+def get_uri_param(param_name):
+    if not "REQUEST_URI" in environ:
+        return ''
+    parsed = parse.urlparse(environ["REQUEST_URI"])
+    values = parse.urlparse.parse_qs(parsed.query)
+    return values[param_name] if param_name in values else ''
+
+def print_status_code(result, success_content={}, error_content={}, \
+ success_code='Status: 200 success', error_code='Status: 400 Bad Request'):
+    """Print the status code in page, be it succesfull or failed request"""
+    if result:
+        print('Content-Type: text/json')
+        print(success_code)
+        print()
+        if success_content:
+            print(json.dumps(success_content))
+    else:
+        print('Content-Type: text/json')
+        print(error_code)
+        print()
+        print(json.dumps(error_content))
+
+def lstrip_string(value):
+    return value.lstrip() if value else value
 
 class FormParser(object):
     """Form parser class"""
@@ -121,9 +211,12 @@ class FormParser(object):
         #validate element
         self.reset_properties()
 
-    def get_value(self, key, default_value):
+    def get_value(self, key, default_value, strip_value=True):
         """Gets an element from an array"""
-        return self.__elements[key] if key in self.__elements else default_value
+        val = self.__elements[key] if key in self.__elements else default_value
+        if val and strip_value:
+            val.strip()
+        return val
 
     def elements_count(self):
         """Retunrs the elements size"""
@@ -137,15 +230,22 @@ class FormParser(object):
         """Parse the stdin parameters""" 
         self.parse_values(sys.stdin.read()) 
 
+    def discover_values(self):
+        if 'REQUEST_METHOD' in environ:
+            if environ['REQUEST_METHOD'] == 'GET':
+                self.parse_get_values()
+            elif environ["REQUEST_METHOD"] == 'POST':
+                self.parse_post_values()
+        else:
+            self.parse_values('')
+
     def parse_values(self, input_value):
         """Parse parameters"""
         self.reset_properties()
         default_return_value = []
-
         input_values = input_value.split("&")
         if not input_values:
             return default_return_value
-
         filtered_list = [x for x in input_values if "=" in x]
         if not filtered_list:
             return default_return_value
@@ -155,7 +255,7 @@ class FormParser(object):
             key_value = value.split("=")
             if not key_value or key_value[0] in params_definition:
                 continue
-            self.__elements[key_value[0]] = unquote(key_value[1]) if len(key_value) > 1 else ""
+            self.__elements[key_value[0]] = parse.unquote_plus(key_value[1]) if len(key_value) > 1 else ""
             self.__elements_count += 1
             params_definition.append(key_value[0])
 
@@ -163,3 +263,19 @@ class FormParser(object):
         """Reset the parameters to the default state"""
         self.__elements_count = 0
         self.__elements = {}
+
+def validate_string_input(field_name, field_value, max_length, caption, error_dict, required=True):
+    if required:
+        if not field_value:
+            error_dict['invalid_%s' % field_name] = constants.REQUIRED_VALUE_FORMAT % (caption)
+        elif len(field_value) > max_length:
+            error_dict['invalid_%s' % field_name] = \
+             constants.INVALID_LENGTH_FORMAT % (caption, max_length)
+    elif field_value and len(field_value) > max_length:
+        error_dict['invalid_%s' % field_name] = \
+         constants.INVALID_LENGTH_FORMAT % (caption, max_length)
+
+def redirect_if_session_expired():
+    if not check_user_session():
+        print("Location: signin.py")
+        print("Content-type: text/html\n\n")

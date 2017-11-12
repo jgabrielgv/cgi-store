@@ -1,0 +1,75 @@
+<div class="login-page">
+    <div class="form">
+        <div class="errorClass">
+            <!--</error>-->
+        </div>
+        <form name="frmPostProduct" id='frmPostProduct' method="post" onSubmit="JavaScript:create_product('frmPostProduct', event)">
+            <table>
+                <tr>
+                    <td>C&#243;digo:</td>
+                    <td>
+                        <div id="invalid_code">
+                            <input type="text" name="code">
+                            <div class="hide-content">
+                                <span class="form-invalid-data-sign">
+                                    <i class="fa fa-close"></i>
+                                </span>
+                                <span id="invalid_code_msg" class="form-invalid-data-info"></span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Descripci&#243;n:</td>
+                    <td>
+                        <div id="invalid_descr">
+                            <input type="text" name="descr">
+                            <div class="hide-content">
+                                <span class="form-invalid-data-sign">
+                                    <i class="fa fa-close"></i>
+                                </span>
+                                <span id="invalid_descr_msg" class="form-invalid-data-info"></span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Precio:</td>
+                    <td>
+                        <div id="invalid_price">
+                            <input type="text" name="price">
+                            <div class="hide-content">
+                                <span class="form-invalid-data-sign">
+                                    <i class="fa fa-close"></i>
+                                </span>
+                                <span id="invalid_price_msg" class="form-invalid-data-info"></span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <!--<tr>
+                    <td>Imagen:</td>
+                    <td>
+                        <input type="file" accept="image/*" name="image">
+                    </td>
+                </tr>-->
+                <tr>
+                    <td></td>
+                    <td>
+                        <div id="validation_error">
+                            <div class="hide-content">
+                                <span class="form-invalid-data-sign">
+                                    <i class="fa fa-close"></i>
+                                </span>
+                                <span id="validation_error_msg" class="form-invalid-data-info"></span>
+                            </div>
+                        </div>
+                        <input type="submit" value="Crear producto">
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+<!--**error**-->
+<a href="myproducts.py">Ver mis productos</a>

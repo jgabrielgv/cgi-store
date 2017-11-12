@@ -1,6 +1,19 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """Handles the connection between Python and MariaDB"""
-from utils.helpers import current_date
+
+import os
+import sys
+import binascii
+import time
+from datetime import datetime
+
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
+from utils import config
+#from utils.helpers import current_date
 from utils.secrets import check_password, make_secret
 import mysql.connector as mariadb
 from data.models import Product, ProductDetail, User, ShoppingCartDetail
@@ -23,7 +36,8 @@ class Connection(object):
 
     def __open_connection(self):
         """Open the existing connection"""
-        self.__db = mariadb.connect(host="localhost", user='cgistore', password='M2rI.DB_C', database='store_lab')
+        self.__db = mariadb.connect(host=config.MYSQL_HOST, user=config.MYSQL_USR, \
+         password=config.MYSQL_PWD, database=config.MYSQL_DB)
 
     def __log(self, message, exception=None):
         """Logs an error in error entity"""
@@ -37,6 +51,109 @@ class Connection(object):
             #logging.info("inserted values %d, %s", id, filename)
         #except mariadb.IntegrityError as e:
 
+    def __current_date(selft):
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    def valid_username_cookie_id(self, cookie_id):
+        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            sql_query_user = """select user_session_history_id, user_id from user_session__history where cookie_id = %s limit 1"""
+            cursor.execute(sql_query_user, (cookie_id,))
+            if cursor.fetchall():
+                result = True
+            self.__log("Usuario no registrado")
+            return result
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
+        return True
+    
+    def delete_user_history(self, cookie_id):
+        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            sql_query_user = """delete from user_session__history where cookie_id = %s"""
+            cursor.execute(sql_query_user, (cookie_id,))
+            self.__log("Cookie eliminado")
+            self.__db.commit()
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
+        return True
+
+    def get_user_history_id(self, cookie_id):
+        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            sql_query_user = """select user_session_history_id, user_id from user_session__history where cookie_id = %s limit 1"""
+            cursor.execute(sql_query_user, (cookie_id,))
+            rows = cursor.fetchall()
+            results = len(rows)
+            if results > 0:
+                row = rows[0]
+                return row[1]
+            self.__log("Usuario no registrado")
+            return result
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
+        return True
+
+    def get_user_id(self, user_name, cursor):
+        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+        result = False
+        data = None
+        try:
+            sql_query_user = """SELECT user_id, username, email FROM user WHERE username = %s limit 1"""
+            cursor.execute(sql_query_user, (user_name,)) 
+            rows = cursor.fetchall()
+            results = len(rows)
+            if results > 0:
+                row = rows[0]
+                return row[0]
+            self.__log("Usuario no registrado")
+            return result
+        except mariadb.Error as error:
+            print error
+            self.__log(self.__default_sql_error, error)
+            return result
+        return True 
+    
+    def insert_user_cookie(self, cookie_id, user_name, expiration_date):
+        """Creates an account based on the user information"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            user_id = self.get_user_id(user_name, cursor)
+            if user_id is not None:
+                sql_query = """insert into user_session__history (user_id, cookie_id, expire_date) values(%s, %s, %s)"""
+                cursor.execute(sql_query, (user_id, cookie_id, expiration_date,))
+                if not cursor.rowcount:
+                    self.__log("No se ha podido Actualizar el cookie del usuario. Favor intente de nuevo.")
+                    return result
+                self.__db.commit()
+            return result
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
+        return True
+
     def create_account(self, user):
         """Creates an account based on the user information"""
         self.__open_connection()
@@ -45,9 +162,9 @@ class Connection(object):
         try:
             if not self.valid_user_to_create(user,  cursor):
                 return result
-            sql_query = """insert into user (username, email, password, entry_date) values (%s, %s, %s, %s)"""
+            sql_query = """insert into user (name, username, email, password, salt, entry_date) values (%s, %s, %s, %s, %s, %s)"""
             hashed_password = make_secret(user.password)
-            cursor.execute(sql_query, (user.username, user.email, hashed_password, current_date(),))
+            cursor.execute(sql_query, (user.name, user.username, user.email, hashed_password['password'], hashed_password['salt'], self.__current_date(),))
             if not cursor.rowcount:
                 self.__log("No se ha podido crear la cuenta. Favor intente de nuevo.")
                 return result
@@ -109,15 +226,15 @@ class Connection(object):
         result = {}
         try:
             error_message = "Usuario y contras&eacute;a no coinciden."
-            sql_query = """select user_id, username, email, password, entry_date from user where username = %s"""
+            sql_query = """select user_id, username, email, password, salt, entry_date from user where username = %s"""
             cursor.execute(sql_query, (user_name,))
             dataset = cursor.fetchall()
             if not dataset:
                 self.__log(error_message)
                 return result
-            for user_id, user_name, email, password, entry_date in dataset:
-                user = User(user_id, user_name, email, password, entry_date)
-            if not check_password(user.password, passwd):
+            for user_id, user_name, email, password, salt, entry_date in dataset:
+                user = User(user_id, user_name, email, password, salt, entry_date)
+            if not check_password(user, passwd):
                 self.__log(error_message)
                 user = result
             return user
@@ -127,22 +244,39 @@ class Connection(object):
             self.__close_connection(cursor)
         return result
 
-    def fetch_product_by_code(self, code): 
-        """Fetch all products""" 
-        self.__open_connection() 
-        cursor = self.__db.cursor() 
-        result = None 
-        try: 
-            sql_query = """select p.code, p.descr, p.price, p.entry_date, u.username from product p inner join user u on p.user_id = u.user_id and p.code = %s""" 
-            cursor.execute(sql_query, (code,)) 
-            query = cursor.fetchall() 
-            for code, descr, price, entry_date, username in query: 
-                result = ProductDetail(0, username, code, entry_date, descr, price) 
-        except mariadb.Error as error: 
-            self.__log(self.__default_sql_error, error) 
-        finally: 
-            self.__close_connection(cursor) 
-        return result 
+    def fetch_user_by_user_id(self, user_id):
+        """Fetch an specific user by user id"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = None
+        try:
+            sql_query = """select user_id, username, email, entry_date from user where user_id = %s"""
+            cursor.execute(sql_query, (user_id,))
+            dataset = cursor.fetchall()
+            for user_id, user_name, email, entry_date in dataset:
+                result = User(user_id, user_name, email, '', '', entry_date)
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+        finally:
+            self.__close_connection(cursor)
+        return result
+
+    def fetch_product_by_code(self, code):
+        """Fetch all products"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = None
+        try:
+            sql_query = """select p.product_id, p.code, p.descr, p.price, p.entry_date, u.username from product p inner join user u on p.user_id = u.user_id and p.code = %s""" 
+            cursor.execute(sql_query, (code,))
+            query = cursor.fetchall()
+            for product_id, code, descr, price, entry_date, username in query:
+                result = ProductDetail(product_id, username, code, entry_date, descr, price)
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+        finally:
+            self.__close_connection(cursor)
+        return result
 
     def fetch_products_by_user_id(self, user_id):
         """Fetch all products from a specic user"""
@@ -151,15 +285,17 @@ class Connection(object):
         result = []
         try:
             sql_query = """select code,descr,price,entry_date,image_path from product where user_id = %s""" 
-            cursor.execute(sql_query, (user_id,)) 
-            query = cursor.fetchall() 
-            for code, descr, price, entry_date, image_path in query: 
-                result.append(Product(0, 0, code, entry_date, descr, float(price), image_path)) 
-        except mariadb.Error as error: 
-            self.__log(self.__default_sql_error, error) 
-        finally: 
-            self.__close_connection(cursor) 
+            cursor.execute(sql_query, (user_id,))
+            query = cursor.fetchall()
+            for code, descr, price, entry_date, image_path in query:
+                result.append(Product(0, 0, code, entry_date, descr, float(price), image_path))
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+        finally:
+            self.__close_connection(cursor)
         return result
+
+    #.get_value("search-keyboards", '')
 
     def fetch_products(self):
         """Fetch all products"""
@@ -177,28 +313,47 @@ class Connection(object):
         finally:
             self.__close_connection(cursor)
         return result
+
+    def fetch_products_by_keywords(self, keywords=''):
+        result = []
+        if not keywords:
+            return result
+        """Fetch all products by keyboard"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        try:
+            sql_query = """select p.code, p.descr, p.price, p.entry_date, u.username from product p inner join user u on p.user_id = u.user_id where p.code like concat('%', %(keywords)s, '%') or p.descr like concat('%', %(keywords)s, '%')"""
+            cursor.execute(sql_query, {"keywords": keywords})
+            query = cursor.fetchall()
+            for code, descr, price, entry_date, username in query:
+                result.append(ProductDetail(0, username, code, entry_date, descr, price))
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+        finally:
+            self.__close_connection(cursor)
+        return result
     
     def increase_cart_qty(self, cart): 
         """Creates an article into the database""" 
         self.__open_connection() 
         cursor = self.__db.cursor() 
         result = False 
-        try: 
+        try:
             sql_query = """insert into shopping_cart (user_id, product_id, quantity) values  
-            (%{user_id}s, %{product_id}s %{quantity}s) on duplicate key update quantity = quantity + %{quantity}s;""" 
+            (%(user_id)s, %(product_id)s, %(quantity)s) on duplicate key update quantity = quantity + %(quantity)s;""" 
             cursor.execute(sql_query, { "user_id": cart.user_id, "product_id": cart.product_id, "quantity": cart.quantity }) 
             if not cursor.rowcount: 
                 self.__log("No se ha podido realizar la transaccion. Favor intente de nuevo.") 
                 return result 
             self.__db.commit() 
-        except mariadb.Error as error: 
+        except mariadb.Error as error:
             self.__log(self.__default_sql_error, error) 
             return result 
         finally: 
             self.__close_connection(cursor) 
         return True 
  
-    def place_order(self, user_id): 
+    def place_order(self, user_id, address): 
         """Checkout the current""" 
         self.__open_connection() 
         cursor = self.__db.cursor() 
@@ -236,6 +391,22 @@ class Connection(object):
             self.__close_connection(cursor) 
         return True 
 
+    def valid_product_to_create(self, product, cursor):
+        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+        result = False
+        try:
+            sql_query_user = """select product_id from product where code= %s limit 1"""
+            #print "<p>Query: %s</p>" % (sql_query_user % (product.code))
+            cursor.execute(sql_query_user, (product.code,))
+            #print "<p>row count validate: %d</p>" % (cursor.rowcount)
+            if cursor.fetchall():
+                self.__log("El código digitado ya se encuentra registrado en el sistema.")
+                return result
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        return True
+
     def valid_user_to_create(self, user, cursor):
         """Validate product properties bofore save, for example, that the code_id does not exists yet"""
         result = False
@@ -248,4 +419,23 @@ class Connection(object):
         except mariadb.Error as error:
             self.__log(self.__default_sql_error, error)
             return result
+        return True        
+
+    def create_suggestion(self, suggestion):
+        """Creates a suggestion for a register or not register user"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            sql_query = """insert into suggestion (user_id, entry_date, reason, message, name, email) values (%s, %s, %s, %s, %s, %s)"""
+            cursor.execute(sql_query, (suggestion.user_id, self.__current_date(), suggestion.reason, suggestion.message, suggestion.name, suggestion.email,))
+            if not cursor.rowcount:
+                self.__log("No se ha podido crear la sugerencia. Favor intente de nuevo.")
+                return result
+            self.__db.commit()
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
         return True        
