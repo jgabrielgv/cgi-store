@@ -185,6 +185,11 @@ li a:hover:not(.active) {
   background-color: #4CAF50;
 }
 
+#validation_error {
+
+  margin-top: 25px;
+}
+
 
 
 
