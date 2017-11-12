@@ -10,13 +10,9 @@ __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
-from utils.helpers import pagetemplate, valiadtionMessage, ucgiprint, loadhtml, FormParser
-from utils import constants, helpers
+from utils.helpers import pagetemplate, valiadtionMessage, ucgiprint
+from utils.helpers import loadhtml, FormParser, create_cookie, check_user_seesion
 from data.dao import Connection
-
-if helpers.check_user_session():
-    print("Location: index.py")
-    print("Content-type: text/html\n\n")
 
 user = False
 err = False
@@ -28,8 +24,9 @@ query_string = sys.stdin.read() # reads the parameters, username=xxx&password=xx
 sys.stdout.flush()
 #print "Content-type: text/html\n\n"
 
-def cretaeSession():
-    print ("Location: cookie.py")
+def createSession():
+    create_cookie(username)
+    #print "Location: cookie.py"
 
 def validate_properties():
     """Validate the product properties before save it to database"""
@@ -52,7 +49,7 @@ if query_string:
         user = conn.fetch_user(username, password)
         if user:
             #save to session
-            cretaeSession()
+            createSession()
             #print "Location: index.py"
             #print session.Data
         else:
@@ -61,9 +58,13 @@ if query_string:
     else:
         result = validate_properties()
 
-body = loadhtml('signin.html')
-
-if result:
+if check_user_seesion():
+    print "Location: index.py"
+    print "Content-type: text/html\n\n"
+else:
+    css = '<link rel="stylesheet" type="text/css" href="css/styles.css">'
+    body = loadhtml('signin.html')   
+    if result:
     if result == 'all':
         htmlerror = valiadtionMessage.replace('**error**', 'Contrasena es requerida')
         htmlerrorUser = valiadtionMessage.replace('**error**', 'Usuario es requerido')
@@ -75,9 +76,8 @@ if result:
     elif result == 'user':
         htmlerror = valiadtionMessage.replace('**error**', 'Usuario es requerido')
         body = body.replace('</username>', htmlerror).replace('errorClassUser', 'form-invalid-data')
-if err:
+    if err:
     body = body.replace('</error>', htmlerror).replace('errorClass', 'form-invalid-data')
 
-print ("Content-type: text/html\n\n")
-wholepage = pagetemplate.replace('**title**', 'Log In').replace('**css**', constants.DEFAULT_CSS).replace('**body**', body).replace('#action', 'signin.py')
-ucgiprint(wholepage)
+    wholepage = pagetemplate.replace('**title**', 'Log In').replace('**css**', css).replace('**body**', body).replace('#action', 'signin.py')
+    ucgiprint(wholepage)

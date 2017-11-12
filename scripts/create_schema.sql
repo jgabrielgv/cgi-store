@@ -15,6 +15,17 @@ create table if not exists user (
     constraint uk_user_email UNIQUE (email)
 );
 
+create table if not exists user_session__history (
+    user_session_history_id int not null AUTO_INCREMENT,
+    user_id int not null,
+    cookie_id varchar(100),
+    expire_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    constraint pk_user_session_history_id primary key(user_session_history_id),
+CONSTRAINT fk_user_session_history_id_user_id FOREIGN KEY (user_id) REFERENCES user(user_id)
+      ON DELETE RESTRICT
+      ON UPDATE RESTRICT
+);
+
 create table if not exists product (
     product_id int not null AUTO_INCREMENT,
     user_id int not null,

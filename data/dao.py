@@ -4,6 +4,8 @@
 import os
 import sys
 import binascii
+import time
+from datetime import datetime
 
 __SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
@@ -11,7 +13,7 @@ if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
 from utils import config
-from utils.helpers import current_date
+#from utils.helpers import current_date
 from utils.secrets import check_password, make_secret
 import mysql.connector as mariadb
 from data.models import Product, ProductDetail, User, ShoppingCartDetail
@@ -49,6 +51,109 @@ class Connection(object):
             #logging.info("inserted values %d, %s", id, filename)
         #except mariadb.IntegrityError as e:
 
+    def __current_date(selft):
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    def valid_username_cookie_id(self, cookie_id):
+        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            sql_query_user = """select user_session_history_id, user_id from user_session__history where cookie_id = %s limit 1"""
+            cursor.execute(sql_query_user, (cookie_id,))
+            if cursor.fetchall():
+                result = True
+            self.__log("Usuario no registrado")
+            return result
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
+        return True
+    
+    def delete_user_history(self, cookie_id):
+        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            sql_query_user = """delete from user_session__history where cookie_id = %s"""
+            cursor.execute(sql_query_user, (cookie_id,))
+            self.__log("Cookie eliminado")
+            self.__db.commit()
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
+        return True
+
+    def get_user_history_id(self, cookie_id):
+        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            sql_query_user = """select user_session_history_id, user_id from user_session__history where cookie_id = %s limit 1"""
+            cursor.execute(sql_query_user, (cookie_id,))
+            rows = cursor.fetchall()
+            results = len(rows)
+            if results > 0:
+                row = rows[0]
+                return row[1]
+            self.__log("Usuario no registrado")
+            return result
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
+        return True
+
+    def get_user_id(self, user_name, cursor):
+        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+        result = False
+        data = None
+        try:
+            sql_query_user = """SELECT user_id, username, email FROM user WHERE username = %s limit 1"""
+            cursor.execute(sql_query_user, (user_name,)) 
+            rows = cursor.fetchall()
+            results = len(rows)
+            if results > 0:
+                row = rows[0]
+                return row[0]
+            self.__log("Usuario no registrado")
+            return result
+        except mariadb.Error as error:
+            print error
+            self.__log(self.__default_sql_error, error)
+            return result
+        return True 
+    
+    def insert_user_cookie(self, cookie_id, user_name, expiration_date):
+        """Creates an account based on the user information"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = False
+        try:
+            user_id = self.get_user_id(user_name, cursor)
+            if user_id is not None:
+                sql_query = """insert into user_session__history (user_id, cookie_id, expire_date) values(%s, %s, %s)"""
+                cursor.execute(sql_query, (user_id, cookie_id, expiration_date,))
+                if not cursor.rowcount:
+                    self.__log("No se ha podido Actualizar el cookie del usuario. Favor intente de nuevo.")
+                    return result
+                self.__db.commit()
+            return result
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return result
+        finally:
+            self.__close_connection(cursor)
+        return True
+
     def create_account(self, user):
         """Creates an account based on the user information"""
         self.__open_connection()
@@ -59,7 +164,7 @@ class Connection(object):
                 return result
             sql_query = """insert into user (name, username, email, password, salt, entry_date) values (%s, %s, %s, %s, %s, %s)"""
             hashed_password = make_secret(user.password)
-            cursor.execute(sql_query, ('Juanchito', user.username, user.email, hashed_password['password'], hashed_password['salt'], current_date(),))
+            cursor.execute(sql_query, (user.name, user.username, user.email, hashed_password['password'], hashed_password['salt'], self.__current_date(),))
             if not cursor.rowcount:
                 self.__log("No se ha podido crear la cuenta. Favor intente de nuevo.")
                 return result
@@ -84,25 +189,6 @@ class Connection(object):
             #print "<p>rowcount1: %d</p>" % (cursor.rowcount)
             if not cursor.rowcount:
                 self.__log("No se ha podido crear el producto. Favor intente de nuevo.")
-                return result
-            self.__db.commit()
-        except mariadb.Error as error:
-            self.__log(self.__default_sql_error, error)
-            return result
-        finally:
-            self.__close_connection(cursor)
-        return True
-
-    def create_suggestion(self, suggestion):
-        """Creates a suggestion for a register or not register user"""
-        self.__open_connection()
-        cursor = self.__db.cursor()
-        result = False
-        try:
-            sql_query = """insert into suggestion (user_id, entry_date, reason, message, name, email) values (%s, %s, %s, %s, %s, %s)"""
-            cursor.execute(sql_query, (suggestion.user_id, current_date(), suggestion.reason, suggestion.message, suggestion.name, suggestion.email,))
-            if not cursor.rowcount:
-                self.__log("No se ha podido crear la sugerencia. Favor intente de nuevo.")
                 return result
             self.__db.commit()
         except mariadb.Error as error:
@@ -335,53 +421,16 @@ class Connection(object):
             return result
         return True        
 
-    def valid_username_cookie_id(self, cookie_id):
-        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+    def create_suggestion(self, suggestion):
+        """Creates a suggestion for a register or not register user"""
         self.__open_connection()
         cursor = self.__db.cursor()
         result = False
         try:
-            sql_query_user = """select user_id, username, email, password, entry_date from user where cookie_id = %s"""
-            cursor.execute(sql_query_user, (cookie_id,))
-            if cursor.rowcount > 0:
-                dataset = cursor.fetchall()
-                result = True
-            self.__log("Usuario no registrado")
-            return result
-        except mariadb.Error as error:
-            self.__log(self.__default_sql_error, error)
-            return result
-        return True      
-
-    def valid_username_cookie_id_user(self, cookie_id):
-        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
-        self.__open_connection()
-        cursor = self.__db.cursor()
-        result = False
-        try:
-            sql_query_user = """SELECT user_id, username, email FROM user WHERE cookie_id = %s"""
-            cursor.execute(sql_query_user, (cookie_id,))
-            if cursor.rowcount > 0:
-                dataset = cursor.fetchall()
-                for user_id, user_name, email, password, entry_date in dataset:
-                    result = User(user_id, user_name, email, password, entry_date)
-            self.__log("Usuario no registrado")
-            return result
-        except mariadb.Error as error:
-            self.__log(self.__default_sql_error, error)
-            return result
-        return True 
-    
-    def update_user_cookie(self, cookie_id, user_name):
-        """Creates an account based on the user information"""
-        self.__open_connection()
-        cursor = self.__db.cursor()
-        result = False
-        try:
-            sql_query = """update user set cookie_id = %s WHERE username = %s"""
-            cursor.execute(sql_query, (cookie_id, user_name,))
+            sql_query = """insert into suggestion (user_id, entry_date, reason, message, name, email) values (%s, %s, %s, %s, %s, %s)"""
+            cursor.execute(sql_query, (suggestion.user_id, self.__current_date(), suggestion.reason, suggestion.message, suggestion.name, suggestion.email,))
             if not cursor.rowcount:
-                self.__log("No se ha podido Actualizar el cookie del usuario. Favor intente de nuevo.")
+                self.__log("No se ha podido crear la sugerencia. Favor intente de nuevo.")
                 return result
             self.__db.commit()
         except mariadb.Error as error:
@@ -389,4 +438,4 @@ class Connection(object):
             return result
         finally:
             self.__close_connection(cursor)
-        return True
+        return True        

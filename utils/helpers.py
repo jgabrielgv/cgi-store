@@ -14,32 +14,61 @@ __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
+import session
+import Cookie 
 import time
 from utils import constants, session
 from os import environ
 from urllib import parse
 from datetime import datetime
 import string
+from datetime import datetime
+from data.dao import Connection
+
+def create_cookie(username):
+    sess = session.Session(expires=365*24*60*60, cookie_path='/')
+    lastvisit = sess.data.get('lastvisit')
+    if lastvisit:
+        message = 'Welcome back. Your last visit was at ' + \
+            time.asctime(time.gmtime(float(lastvisit)))
+    else:
+        message = 'New session'
+    # Save the current time in the session
+    conn = Connection()
+    sess.data['lastvisit'] = repr(time.time())
+ 
+    date = datetime.fromtimestamp(int(sess.cookie['sid']['expires'])).strftime('%Y-%m-%d %H:%M:%S')
+    conn.insert_user_cookie(sess.cookie['sid'].value, username, date)
+    print "Location: index.py"
+    
+    print sess.cookie
+    print "Content-type: text/html\n\n"
 
 def check_user_seesion():
     try:
-        if not "HTTP_COOKIE" in os.environ:
-            return False
-        cookie = cookies.SimpleCookie(os.environ["HTTP_COOKIE"])
-        sess = session.Session(expires='Thu, 01 Jan 1970 00:00:00 GMT', cookie_path='/')
+        cookie = Cookie.SimpleCookie(os.environ["HTTP_COOKIE"])
+        sess = session.Session(expires=365*24*60*60, cookie_path='/')
         #lastvisit = sess.data.get('lastvisit')
         sess.data['lastvisit'] = repr(time.time())
         #print print_page('index.html', "Inicio")
         #print cookie["sid"].value
-        if cookie["sid"].value != sess.cookie["sid"].value:
+        conn = Connection()
+        
+        result = conn.valid_username_cookie_id(sess.cookie['sid'].value)
+        cookie_file = '/Users/mcanales/Sites' + '/session/sess_' + sess.cookie['sid'].value + '.db'
+        isfile = os.path.exists(cookie_file)
+        #print result
+        #print isfile
+        #print cookie["sid"].value != sess.cookie["sid"].value
+        if not result or not isfile:
             return False
         else:
             return True
-
-    except cookies.CookieError as error:
+    
+    except (Cookie.CookieError, KeyError):
         return False
         #print "Content-type: text/plain\n"
-#print "El usuario no esta Logueado"
+        #print "El usuario no esta Logueado"
 
 def check_user_session():
     return check_user_seesion()
