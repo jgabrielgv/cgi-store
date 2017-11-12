@@ -89,6 +89,20 @@ on delete RESTRICT
     on update RESTRICT
 );
 
+create table if not exists suggestion (
+    suggestion_id INT NOT NULL AUTO_INCREMENT,
+    entry_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id INT NULL,
+    name VARCHAR(50) NULL,
+    email varchar(50) NOT NULL,
+    reason VARCHAR(125),
+    message VARCHAR(800),
+    CONSTRAINT pk_suggestion PRIMARY KEY(user_id),
+    CONSTRAINT fk_suggestion_user_id FOREIGN KEY (user_id) REFERENCES User(user_id)
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT
+);
+
 CREATE USER IF NOT EXISTS 'cgistore'@'localhost' IDENTIFIED BY 'M2rI.DB_C';
 GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.user TO 'cgistore'@'localhost';
 GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.product TO 'cgistore'@'localhost';

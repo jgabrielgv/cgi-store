@@ -7,7 +7,16 @@ from http import cookies
 import shelve
 import time
 import hashlib
-sys.path.append('/home/juancho/Sites')
+
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
+from utils import config
+
+sys.path.append(config.SESSION_FILES_ROOT_PATH)
+
 SESSION = None
 class Session(object):
     
@@ -33,7 +42,7 @@ class Session(object):
         if cookie_path:
             self.cookie['sid']['path'] = cookie_path
 
-        session_dir = '/home/juancho/Sites' + '/session'
+        session_dir = config.SESSION_FILES_FOLDER_PATH
         if not os.path.exists(session_dir):
             try:
                 os.mkdir(session_dir, 0o2770)

@@ -62,3 +62,12 @@ class ShoppingCartDetail(object):
 
     def total(self): 
         return self.price * self.quantity 
+
+class Suggestion(object):
+    """Creates a simple Suggestion object"""
+    def __init__(self, user_id, name, email, reason, message):
+        self.user_id = user_id
+        self.name = name
+        self.email = email
+        self.reason = reason
+        self.message = message

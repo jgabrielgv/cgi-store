@@ -9,26 +9,6 @@ function sendData(url, params) {
             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
         },
         body: query
-        /*}).then(function (response) {
-            var json = response.json();
-            if(response.ok)
-                return json;
-            else
-                json.then(Promise.reject.bind(Promise));
-        }).then(function(data){
-            console.log(data);
-        }).catch(function (err) {
-            mapErrors(params, err);
-        });*/
-        /*}).then(response => Promise.all([response.ok, response.json()]))
-            .then(([responseOk, body]) => {
-                if (responseOk) {
-                    // handle success case 
-                } else { throw new Error(body); }
-            })
-            .catch(error => { // catches error case and if fetch itself rejects 
-                mapErrors(params, error);
-            });*/
     }).then(response => {
         return response.json().then(data => {
             if (response.ok) {
@@ -41,19 +21,37 @@ function sendData(url, params) {
         .then(result => console.log('success:', result))
         .catch(error => mapErrors(params, error.data));
 }
-function mapErrors(fields, response) {
+function cleanupCurrentControls(fields) {
     for (let item in fields) {
         let element = document.getElementById(`invalid_${item}`);
+        if (!element) { continue; }
         element.children[1].style.display = "none";
         if (element.className && element.className.includes("form-invalid-data")) {
             element.className = "";
             element.children[1].lastElementChild.innerHTML = '';
         }
     }
+    let element = document.getElementById(`validation_error`);
+    if (!element) { return; }
+    element.children[0].style.display = "none";
+    if (element.className && element.className.includes("form-invalid-data")) {
+        element.className = "";
+        element.children[1].lastElementChild.innerHTML = '';
+    }
+}
+function mapErrors(fields, response) {
+    if (!response) { return; }
+    cleanupCurrentControls(fields);
     for (let item in response) {
         let element = document.getElementById(item);
+        if (!element) { continue; }
         element.className = "form-invalid-data";
-        element.children[1].lastElementChild.innerHTML = response[item];
-        element.children[1].style.display = "block";
+        if (item == 'validation_error') {
+            element.children[0].lastElementChild.innerHTML = response[item];
+            element.children[0].style.display = "block";
+        } else {
+            element.children[1].lastElementChild.innerHTML = response[item];
+            element.children[1].style.display = "block";
+        }
     }
 }

@@ -11,8 +11,12 @@ if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
 from utils.helpers import pagetemplate, valiadtionMessage, ucgiprint, loadhtml, FormParser
-from utils import constants
+from utils import constants, helpers
 from data.dao import Connection
+
+if helpers.check_user_session():
+    print("Location: index.py")
+    print("Content-type: text/html\n\n")
 
 user = False
 err = False

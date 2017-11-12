@@ -11,17 +11,21 @@ if not __SCRIPT_DIR in sys.path:
 
 import string
 from data.dao import Connection
+from utils import helpers
 from utils.helpers import print_page, loadhtml, check_user_seesion, FormParser, is_request, get_uri_param
 from utils import constants, helpers
 #from utils.email_handler import SmtpClient
 
-__PARSER = FormParser()
+helpers.redirect_if_session_expired()
 
 """
 client = SmtpClient("jgmezvargas@gmail.com", ["lm.sanchezvargas@gmail.com", "jgabriel.gv@hotmail.com"])
 client.build_registration_template()
 client.send_email()
 """
+
+__PARSER = helpers.FormParser()
+__PARSER.discover_values()
 
 def __content_html():
     return """
@@ -49,7 +53,7 @@ def __details_html():
             </tr>"""
 
 def __field_keywords():
-    return helpers.lstrip_string(__PARSER.get_value("field-keywords", ''))
+    return helpers.lstrip_string(__PARSER.get_value("field-keywords", '', False))
 
 def __build_detail_list_html():
     conn = Connection()
@@ -72,10 +76,4 @@ def __build_dynamic_content():
         return html.replace("**content**", "<p>No se ha encontrado coincidencias.</p>")
     return html.replace("**content**", __content_html()).replace("**details**", detail_list)
 
-if check_user_seesion():
-    print_page('', "Inicio", constants.DEFAULT_CSS, __build_dynamic_content())
-else:
-    print ("Location: signin.py")
-    print ("Content-type: text/html\n\n")
-    #print "Content-type: text/plain\n"
-    #print "El usuario no esta Logueado"
+helpers.print_page('', "Inicio", constants.DEFAULT_CSS, __build_dynamic_content())

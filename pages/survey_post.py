@@ -3,65 +3,50 @@
 import os
 import sys
 import json
-import requests
 
 __SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
-from utils.helpers import FormParser
+from utils import constants, helpers
 from data.dao import Connection
 from data.models import Suggestion
 
-query_string = sys.stdin.read()
-name = None
-message = None
-email = None
-def validate_properties():
-    """Validate the product properties before save it to database"""
-    errorMessage = None
-    if not name and not message and not email:
-        errorMessage = 'all'
-    elif not name:
-        errorMessage = 'name'
-    elif not message:
-        errorMessage = 'message'
-    elif not email:
-        errorMessage = 'email'
-    return errorMessage
+__ERRORS = {}
 
-if query_string:
-    parser = FormParser()
-    parser.parse_values(query_string)
+def __validate_properties(user, name, email, reason, message):
+    if not user:
+        helpers.validate_string_input('name', name, 50, 'Nombre', __ERRORS)
+        helpers.validate_string_input('email', email, 50, 'Correo', __ERRORS)
+    helpers.validate_string_input('reason', reason, 100, 'Asunto', __ERRORS, False)
+    helpers.validate_string_input('message', message, 300, 'Mensaje', __ERRORS, False)
+    return __ERRORS
 
-    conn = Connection()
+def __process_survey():
+    parser = helpers.FormParser()
+    parser.discover_values()
     name = parser.get_value("name", "")
     reason = parser.get_value("reason", "")
     message = parser.get_value("message", "")
     email = parser.get_value("email", "")
-    user_id = -1
-    if name and message and email:
-        suggestion = Suggestion(user_id, '', reason, message, name, email)
-        creeateSuggestion = conn.create_suggestion(suggestion)
-    else:
-        result = validate_properties()
+    user_id = helpers.get_session_user_id()
 
-#name = 'queso'
-payload = json.JSONEncoder().encode({'name': name, 'message': message, 'email': email})
+    user = None
+    conn = Connection()
+    if helpers.is_float(user_id) and float(user_id) > 0:
+        user = conn.fetch_user_by_user_id(float(user_id))
+        if not user:
+            __ERRORS[constants.VALIDATION_ERROR] = 'Usuario no existente.'
+            return False
+        else:
+            email = user.email
+            name = user.name
+    if __validate_properties(user, name, email, reason, message):
+        return False
 
-print("Status: 200 OK")
-print("Content-Type: application/json")
-print("Content-Length: %d" % (len(payload)))
-print("")
-print(payload)
-#print "HTTP/1.1 302 Found"
-#print "Location: survey.py\r\n"
-#print "Content-type: text/html\n\n"
-#final_url= "http://127.0.0.1/\x7Emcanales/cgi-bin/survey.py"
-#payload = {'number': 2, 'value': 1}
-#response = requests.post(final_url, data=payload)
-#
-#
-##print(str(response.text).encode('utf-8')) #TEXT/HTML
-#print(str(response.status_code).encode('utf-8'), str(response.reason).encode('utf-8')) #HTTP
+    suggestion = Suggestion(user_id, name, email, reason, message)
+    return conn.create_suggestion(suggestion)
+
+__RESULT = __process_survey()
+helpers.print_status_code(__RESULT, {}, __ERRORS)

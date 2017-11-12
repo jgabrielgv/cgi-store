@@ -9,35 +9,30 @@ __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
-#print ("Content-type: text/html\n\n")
-
 from data.dao import Connection
 from utils.helpers import FormParser, loadhtml, print_page
-from utils import constants
+from utils import constants, helpers
+
+helpers.redirect_if_session_expired()
 
 def __build_dynamic_content():
-    return loadhtml("productdetail.html").format(__product.code, __product.descr, __product.price, \
-    __product.username, __product.entry_date)
+    parser = FormParser()
+    parser.discover_values()
+    code = parser.get_value("code", "")
 
-__parser = FormParser()
-__parser.parse_get_values()
-__code = __parser.get_value("code", "")
-__flag = True
+    if not code or not parser.elements_count:
+        return ''
 
-if not __code or not __parser.elements_count:
-    __flag = False
+    conn = Connection()
+    product = conn.fetch_product_by_code(code)
+    if not product:
+        return ''
 
-__conn = Connection()
-__product = __conn.fetch_product_by_code(__code)
+    return loadhtml("productdetail.html").format(product.code, product.descr, product.price, \
+    product.username, product.entry_date)
 
-if not __product:
-    __flag = False
+__DATA = __build_dynamic_content()
 
 print_page('', "Producto", constants.DEFAULT_CSS, \
-__build_dynamic_content() if __flag else "<p>El producto no existe.</p>")
-
-'''
-for key in os.environ.keys():
-    print "Key: %s, value: %s" % (key, os.environ.get(key))
-    print "</br>"
-'''
+__DATA if __DATA else "<p>El producto no existe.</p>", \
+ '<script src="../js/product_detail.js"></script>')

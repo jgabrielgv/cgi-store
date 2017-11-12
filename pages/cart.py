@@ -3,15 +3,16 @@
 import os
 import sys
 
-#PACKAGE_PARENT = 
 __SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
-from utils import constants
+from utils import constants, helpers
 from utils.helpers import print_page, get_session_user_id, loadhtml, check_user_seesion
 from data.dao import Connection
+
+helpers.redirect_if_session_expired()
 
 def __details_html():
     return """<tr>
@@ -35,8 +36,5 @@ def __build_dynamic_content():
     subtotal = sum(c.total() for c in results)
     return loadhtml("cart.html").replace("**details**", __build_detail_list_html(results)) \
     .replace("**subtotal**", str(subtotal))
-if check_user_seesion():
-    print_page('', "Mis carrito", constants.DEFAULT_CSS, __build_dynamic_content())
-else:
-    print ("Location: signin.py")
-    print ("Content-type: text/plain\n")
+
+print_page('', "Mis carrito", constants.DEFAULT_CSS, __build_dynamic_content())

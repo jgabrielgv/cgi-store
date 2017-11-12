@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """This script contains the helper functions used across the website"""
 
+import json
 import sys
 import os
 from http import cookies
@@ -9,24 +10,15 @@ __SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.pat
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
-#print ("Script path: %s" % (__SCRIPT_DIR))
-#print (sys.path)
+
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
-#print("Paso")
-#print (sys.path)
-
 import time
-#print("After time")
-from utils import session
-
-#print("Entro3")
-
+from utils import constants, session
 from os import environ
 from urllib import parse
 from datetime import datetime
-#import urlparse
 import string
 
 def check_user_seesion():
@@ -43,11 +35,14 @@ def check_user_seesion():
             return False
         else:
             return True
-    
+
     except cookies.CookieError as error:
         return False
         #print "Content-type: text/plain\n"
-        #print "El usuario no esta Logueado"
+#print "El usuario no esta Logueado"
+
+def check_user_session():
+    return check_user_seesion()
 
 def current_date():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -64,7 +59,7 @@ def is_float(value):
 
 def print_page(html_file, title, css_file='', body='', scripts=''):
     """Prints a page based on the html and css parameter specifications"""
-    print ("Content-type: text/html\n\n")
+    print("Content-type: text/html\n\n")
     if not body and html_file:
         body = loadhtml(html_file)
     wholepage = pagetemplate.replace('**title**', title).replace('**css**', css_file) \
@@ -162,6 +157,21 @@ def get_uri_param(param_name):
     values = parse.urlparse.parse_qs(parsed.query)
     return values[param_name] if param_name in values else ''
 
+def print_status_code(result, success_content={}, error_content={}, \
+ success_code='Status: 200 success', error_code='Status: 400 Bad Request'):
+    """Print the status code in page, be it succesfull or failed request"""
+    if result:
+        print('Content-Type: text/json')
+        print(success_code)
+        print()
+        if success_content:
+            print(json.dumps(success_content))
+    else:
+        print('Content-Type: text/json')
+        print(error_code)
+        print()
+        print(json.dumps(error_content))
+
 def lstrip_string(value):
     return value.lstrip() if value else value
 
@@ -172,9 +182,12 @@ class FormParser(object):
         #validate element
         self.reset_properties()
 
-    def get_value(self, key, default_value):
+    def get_value(self, key, default_value, strip_value=True):
         """Gets an element from an array"""
-        return self.__elements[key] if key in self.__elements else default_value
+        val = self.__elements[key] if key in self.__elements else default_value
+        if val and strip_value:
+            val.strip()
+        return val
 
     def elements_count(self):
         """Retunrs the elements size"""
@@ -221,3 +234,19 @@ class FormParser(object):
         """Reset the parameters to the default state"""
         self.__elements_count = 0
         self.__elements = {}
+
+def validate_string_input(field_name, field_value, max_length, caption, error_dict, required=True):
+    if required:
+        if not field_value:
+            error_dict['invalid_%s' % field_name] = constants.REQUIRED_VALUE_FORMAT % (caption)
+        elif len(field_value) > max_length:
+            error_dict['invalid_%s' % field_name] = \
+             constants.INVALID_LENGTH_FORMAT % (caption, max_length)
+    elif field_value and len(field_value) > max_length:
+        error_dict['invalid_%s' % field_name] = \
+         constants.INVALID_LENGTH_FORMAT % (caption, max_length)
+
+def redirect_if_session_expired():
+    if not check_user_session():
+        print("Location: signin.py")
+        print("Content-type: text/html\n\n")

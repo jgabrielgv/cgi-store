@@ -9,7 +9,9 @@ __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
-import utils.constants as constants
-from utils.helpers import print_page
+from utils import constants, helpers
 
-print_page("createproduct.html", "Crear nuevo producto", constants.DEFAULT_CSS, '', '<script src="../js/create_product.js"></script>')
+helpers.redirect_if_session_expired()
+
+helpers.print_page("createproduct.html", "Crear nuevo producto", constants.DEFAULT_CSS, \
+ '', '<script src="../js/create_product.js"></script>')

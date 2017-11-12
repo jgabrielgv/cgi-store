@@ -1,28 +1,55 @@
+<fieldset>
+    <legend>Detalles del carrito</legend>
 
-<table>
-    <thead>
-        <th>Producto</th>
-        <th>Precio</th>
-        <th>Cantidad</th>
-    </thead>
-    <tbody>
-        **details**
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="2"></td>
-            <td>**subtotal**</td>
-        </tr>
-    </tfoot>
-</table>
-<form id="frmConfirmPayment" method="post" action="confirm_payment.py">
-        <input type="button" id="btnConfirmPayment" value="Realizar pago">
-</form>
+    <table>
+        <thead>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Cantidad</th>
+        </thead>
+        <tbody>
+            **details**
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2"></td>
+                <td>**subtotal**</td>
+            </tr>
+        </tfoot>
+    </table>
+</fieldset>
+<fieldset>
+    <legend>Realizar pago</legend>
+    <form id="frmConfirmPayment" method="post" action="confirm_payment.py">
+        <table>
+            <tr>
+                <td>Direcci&#243;n de entrega:</td>
+                <td>
+                    <div id="invalid_address">
+                        <input type="text" name="address">
+                        <div class="hide-content">
+                            <span class="form-invalid-data-sign">
+                                <i class="fa fa-close"></i>
+                            </span>
+                            <span id="invalid_address_msg" class="form-invalid-data-info"></span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <input type="button" id="btnConfirmPayment" value="Realizar pago">
+                </td>
+            </tr>
+        </table>
+    </form>
+</fieldset>
 
 <script type="text/javascript">
     var element = document.getElementById("btnConfirmPayment");
-    element.addEventListener("click", function(evt) {
-        if(confirm("¿Desea confirmar el pago de los productos en el carrito?"))
+    element.addEventListener("click", function (evt) {
+        if (confirm("¿Desea confirmar el pago de los productos en el carrito?"))
             document.getElementById("frmConfirmPayment").submit();
     });
 </script>

@@ -18,52 +18,42 @@ from data.models import Product
 
 __ERRORS = {}
 
-__PARSER = FormParser()
-__PARSER.parse_post_values()
-
-__CODE = __PARSER.get_value("code", "").strip()
-__DESCR = __PARSER.get_value("descr", "").strip()
-__PRICE = __PARSER.get_value("price", "").strip()
-
-def __validate_properties():
+def __validate_properties(code, descr, price):
     """Validate the product properties before save it to database"""
-    code_length = 25
-    descr_length = 100
-    if not __CODE:
-        __ERRORS['invalid_code'] = "Codigo es requerido."
-    elif len(__CODE) > code_length:
-        __ERRORS['invalid_code'] = "El codigo no puede exceder los %d caracteres." % (code_length)
-    if not __DESCR:
-        __ERRORS['invalid_descr'] = "Descripcion es requerida."
-    elif len(__DESCR) > descr_length:
-        __ERRORS['invalid_descr'] = "La descripcion no puede exceder los %d caracteres." % (descr_length)
-    if not __PRICE:
+    helpers.validate_string_input('code', code, constants.PRODUCT_CODE_LENGTH, 'Codigo', __ERRORS)
+    helpers.validate_string_input('descr', descr, constants.PRODUCT_DESCR_LENGTH, 'Descripcion', __ERRORS)
+    if not price:
         __ERRORS['invalid_price'] = "Precio es requerido."
-    elif not is_float(__PRICE):
+    elif not is_float(price):
         __ERRORS['invalid_price'] = "Precio debe ser un valor numérico."
-    elif float(__PRICE) < 0:
+    elif float(price) < 0:
         __ERRORS['invalid_price'] = "El precio debe ser mayor o igual a cero."
     return __ERRORS
 
 __RESULT = True
 
-if __validate_properties():
+def __process_request():
+    parser = FormParser()
+    parser.discover_values()
+    code = parser.get_value("code", "")
+    descr = parser.get_value("descr", "")
+    price = parser.get_value("price", "")
+    if __validate_properties(code, descr, price):
+        return False
+    else:
+        product = Product(0, helpers.get_session_user_id(), code, current_date(), \
+        descr, float(price) if is_float(price) else 0)
+
+        conn = Connection()
+        if not conn.create_product(product):
+            __ERRORS[constants.VALIDATION_ERROR] = conn.errors()
+            return False
+    return True
+
+__RESULT = True
+if not helpers.check_user_session():
+    __ERRORS[constants.VALIDATION_ERROR] = constants.RELOAD_PAGE_MESSAGE
     __RESULT = False
 else:
-    __PRODUCT = Product(0, helpers.get_session_user_id(), __CODE, current_date(), \
-    __DESCR, float(__PRICE) if is_float(__PRICE) else 0)
-
-    __CONN = Connection()
-    if not __CONN.create_product(__PRODUCT):
-        __RESULT = False
-        __ERRORS['validation_error'] = __CONN.errors()
-
-if __RESULT:
-    print('Content-Type: text/json')
-    print('Status: 200 success')
-    print()
-else:
-    print('Content-Type: text/json')
-    print('Status: 400 Bad Request')
-    print()
-    print(json.dumps(__ERRORS))
+    __RESULT = __process_request()
+helpers.print_status_code(__RESULT, {}, __ERRORS)

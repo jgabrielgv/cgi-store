@@ -15,10 +15,3 @@ from utils.helpers import pagetemplate, valiadtionMessage, ucgiprint, loadhtml, 
 body = loadhtml('survey.html')
 wholepage = pagetemplate.replace('**title**', 'Sugerencias').replace('**css**', constants.DEFAULT_CSS).replace('**body**', body).replace('#action', 'signin.py')
 ucgiprint(wholepage)
-#sURL = os.path.realpath('.')
-#print sURL
-#url = os.environ["REQUEST_URI"] 
-#final_url= "http://127.0.0.1/\x7Emcanales/cgi-bin/survey.py"
-#print final_url
-#final_url= urllib.urlencode("http://127.0.0.1/~mcanales/cgi-bin/survey.py")
-#print final_url
