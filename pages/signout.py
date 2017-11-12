@@ -1,16 +1,14 @@
 #!/usr/bin/python3
 """This script shows the logout an user from his current session"""
-
+import time
 import os
 import sys
 
-#PACKAGE_PARENT = 
 __SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
-import time
 from data.dao import Connection
 from utils import config, helpers, session
 
@@ -34,7 +32,7 @@ for cookie in sess.cookie:
     sess.cookie[cookie]['expires'] = 'Thu, 01 Jan 1970 00:00:00 GMT'
 #sess.cookie["sid"] = ''
 sess.close()
-sess.cookie.clear()
+#sess.cookie.clear()
 print("Location: signin.py")
 print("""\
 %s
@@ -42,5 +40,5 @@ Content-Type: text/plain\n
 sess.cookie = %s
 %s
 """ % (sess.cookie, sess.cookie, message))
-
+sess.cookie.clear()
 #print "Content-type: text/html\n\n"

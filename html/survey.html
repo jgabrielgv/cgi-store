@@ -1,38 +1,52 @@
 <div class="login-page">
     <div class="form">
         <div class="errorClass">
-            </error>
+      </error>
+      </div>
+      <form class="register-form" id="suge" name="newuser" onSubmit="JavaScript:create_sugge('suge', event)">
+        <div id="invalid_name">
+            <input type="text" name="name" placeholder="Nombre Completo"/>
+            <div class="hide-content">
+                <span class="form-invalid-data-sign">
+                    <i class="fa fa-close"></i>
+                </span>
+                <span id="invalid_name_msg" class="form-invalid-data-info"></span>
+            </div>
         </div>
-        <form class="register-form" id="suge" name="newuser" onSubmit="JavaScript:create_sugge('suge', event)">
-            <div class="errorClassUser">
-                <input type="text" name="name" placeholder="Nombre Completo" />
-                </username>
+        <div id="invalid_reason">
+            <input type="text" name="reason" placeholder="Tema"/>
+            <div class="hide-content">
+                <span class="form-invalid-data-sign">
+                    <i class="fa fa-close"></i>
+                </span>
+                <span id="invalid_reason_msg" class="form-invalid-data-info"></span>
             </div>
-            <div class="errorClassUser">
-                <input type="text" name="reason" placeholder="Asunto" />
-                </username>
+        </div>
+        <div id="invalid_message">
+                <textarea rows="4" cols="50" name="message" placeholder="Sugerencia"></textarea>
+                <div class="hide-content">
+                    <span class="form-invalid-data-sign">
+                        <i class="fa fa-close"></i>
+                    </span>
+                    <span id="invalid_message_msg" class="form-invalid-data-info"></span>
+                </div>
+        </div>
+        <div id="invalid_email">
+        <input type="text" name="email" placeholder="Correo"/>
+        <div class="hide-content">
+            <span class="form-invalid-data-sign">
+                <i class="fa fa-close"></i>
+            </span>
+            <span id="invalid_email_msg" class="form-invalid-data-info"></span>
+        </div>
+        </div>
+        <div id="validation_error">
+            <div class="hide-content">
+                <span id="validation_error_msg" class="form-invalid-data-info"></span>
             </div>
-            <div class="errorClassPass">
-                <textarea rows="4" cols="50" name="message" placeholder="Mensaje"></textarea>
-                </password>
-            </div>
-            <div class="errorClassEmail">
-                <input type="text" name="email" placeholder="Correo" />
-                </email>
-            </div>
-            <button>Crear</button>
-            <p class="message">
-                <a href="signin.py">Inicie Sesión</a>
-            </p>
-        </form>
+        </div>
+        <button>Crear</button>
+        <p class="message"><a href="signin.py">Inicie Sesión</a></p>
+      </form>
     </div>
 </div>
-
-<script type="text/javascript">
-    function create_sugge(data, event) {
-        var form = document.getElementById(data);
-        //http://localhost/cgistore/pages/survey_post.py
-        sendData('survey_post.py', form);
-        event.preventDefault();
-    }
-</script>

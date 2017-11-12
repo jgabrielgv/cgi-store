@@ -51,8 +51,47 @@ class Connection(object):
             #logging.info("inserted values %d, %s", id, filename)
         #except mariadb.IntegrityError as e:
 
-    def __current_date(selft):
+    def __current_date(self):
         return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+    def get_cookie_id(self, cookie_id, cursor):
+        """Validate product properties bofore save, for example, that the code_id does not exists yet"""
+        response = None
+        data = None
+        try:
+            response = '403'
+            #cursor1 = cursor(buffered=True)
+            sql_query_user = """SELECT user_session_history_id, user_id FROM user_session__history WHERE cookie_id = %s limit 1"""
+            test = cursor.execute(sql_query_user, (cookie_id,))
+            rows = cursor.fetchall()
+            results = len(rows)
+            result = results
+            if results > 0:
+                row = rows[0]
+                sql_query_user = """SELECT user_id, name, email FROM user WHERE user_id = %s limit 1"""
+                cursor.execute(sql_query_user, (row[1],)) 
+                rows = cursor.fetchall()
+                results = len(rows)
+                if results > 0:
+                    row = rows[0]
+                    user = User(row[0],'',row[2],'','',row[1])
+                    return user
+            return response
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+            return response
+        finally:
+            self.__close_connection(cursor)
+        return True 
+    
+    def autorized_session(self, cookie_id):
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        try:
+           result = self.get_cookie_id(cookie_id, cursor)
+           return result
+        finally:
+            self.__close_connection(cursor)
 
     def valid_username_cookie_id(self, cookie_id):
         """Validate product properties bofore save, for example, that the code_id does not exists yet"""
@@ -127,7 +166,6 @@ class Connection(object):
             self.__log("Usuario no registrado")
             return result
         except mariadb.Error as error:
-            #print error
             self.__log(self.__default_sql_error, error)
             return result
         return True 

@@ -9,25 +9,32 @@ from utils.helpers import FormParser
 from data.dao import Connection
 from data.models import Suggestion, User
 
+
 #conn = Connection()
 #conn.fetch_user('mcanales', '1234')
 #user = conn.valid_username_cookie_id_user('93fd3bc7d420658343defa4c72a25d17138d6c03')
 
+#conn = Connection()
+#creeateSuggestion = conn.tt(str('3b1b61eb4d0cdb16fc295a50896cd5bce628df66'))
+
 query_string = sys.stdin.read()
 name = None
 message = None
+reason = None
 email = None
+result = None
+creeateSuggestion = None
+user = None
+Fordiben = None
 def validate_properties():
     """Validate the product properties before save it to database"""
     errorMessage = None
-    if not name and not message and not email:
+    if not message and not reason:
         errorMessage = 'all'
-    elif not name:
-        errorMessage = 'name'
     elif not message:
         errorMessage = 'message'
-    elif not email:
-        errorMessage = 'email'
+    elif not reason:
+        errorMessage = 'reason'
     return errorMessage
 
 if query_string:
@@ -38,53 +45,51 @@ if query_string:
     reason = parser.get_value("reason", "")
     message = parser.get_value("message", "")
 
-    sess = session.Session(expires='Thu, 01 Jan 1970 00:00:00 GMT', cookie_path='/')
+    sess = session.Session(expires=365*24*60*60, cookie_path='/')
     #lastvisit = sess.data.get('lastvisit')
     sess.data['lastvisit'] = repr(time.time())
-    user = conn.valid_username_cookie_id(sess.cookie['sid'].value)
-    user_id = user.user_id
-    name = user.username
-    email = user.email
-    if name and message and email:
-        suggestion = Suggestion(user_id, '', reason, message, name, email)
-        creeateSuggestion = conn.create_suggestion(suggestion)
+    user = conn.autorized_session(sess.cookie['sid'].value)
+    if user is not None and user is not '403':
+        user_id = user.user_id
+        name = user.username
+        email = user.email
+        if message and reason:
+            suggestion = Suggestion(user_id, '', reason, message, name, email)
+            creeateSuggestion = conn.create_suggestion(suggestion)
+        else:
+            result = validate_properties()
     else:
-        result = validate_properties()
-error = []
+        Fordiben = True
+
+__ERRORS = {}
 if result:
     if result == 'all':
-        error.append('Nombre es requerido')
-        error.append('Email es requerido')
-        error.append('Mensaje es requerido')
-    elif result == 'name':
-        error.append('Nombre es requerido')
+        __ERRORS['invalid_message'] = 'Mensaje es requerido'
+        __ERRORS['invalid_reason'] = 'Razon es requerido'
     elif result == 'message':
-        error.append('Mensaje es requerido')
-    elif result == 'email':
-       error.append('Email es requerido')
+        __ERRORS['invalid_message'] = 'Mensaje es requerido'
+    elif result == 'reason':
+       __ERRORS['invalid_reason'] = 'Tema es requerido'
 
-if error:
-    payload = json.JSONEncoder().encode({'errors': error})
+if Fordiben is not None:
+    payload = json.JSONEncoder().encode({'errors': 'user not autorize'})
     print "Status: 403 Forbidden"
     print "Content-Type: application/json"
     print "Content-Length: %d" % (len(payload))
     print ""
     print payload 
+elif __ERRORS:
+    payload = json.dumps(__ERRORS) 
+    print "Status: 400 Bad Request"
+    print "Content-Type: application/json"
+    print "Content-Length: %d" % (len(payload))
+    print ""
+    print payload 
 else:
-    payload = json.JSONEncoder().encode({'name': sess.cookie['sid'].value, 'message': message, 'email': email, 'user_id': user_id})
+    #payload = json.JSONEncoder().encode({'cookie': sess.cookie['sid'].value, 'message': message, 'reason': reason, 'user_id': creeateSuggestion})
+    payload = json.JSONEncoder().encode({'response': 'ok'})
     print "Status: 200 OK"
     print "Content-Type: application/json"
     print "Content-Length: %d" % (len(payload))
     print ""
     print payload 
-
-#print "HTTP/1.1 302 Found"
-#print "Location: survey.py\r\n"
-#print "Content-type: text/html\n\n"
-#final_url= "http://127.0.0.1/\x7Emcanales/cgi-bin/survey.py"
-#payload = {'number': 2, 'value': 1}
-#response = requests.post(final_url, data=payload)
-#
-#
-##print(str(response.text).encode('utf-8')) #TEXT/HTML
-#print(str(response.status_code).encode('utf-8'), str(response.reason).encode('utf-8')) #HTTP
