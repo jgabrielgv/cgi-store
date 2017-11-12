@@ -127,7 +127,7 @@ class Connection(object):
             self.__log("Usuario no registrado")
             return result
         except mariadb.Error as error:
-            print error
+            #print error
             self.__log(self.__default_sql_error, error)
             return result
         return True 
@@ -439,3 +439,28 @@ class Connection(object):
         finally:
             self.__close_connection(cursor)
         return True        
+
+    def username_email_exists(self, username, email):
+        """Validates if a user exists by username or email"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = {}
+        try:
+            sql_query = """select user_id, username, email, entry_date from user where username = %s or email = %s"""
+            cursor.execute(sql_query, (username, email,))
+            dataset = cursor.fetchall()
+            for user_id, user_name, email, entry_date in dataset:
+                result = User(user_id, user_name, email, '', '', entry_date)
+            if not result:
+                return {}
+            values = {}
+            if result.username == username:
+                values['username'] = True
+            if result.email == email:
+                values['email'] = True
+            return values
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+        finally:
+            self.__close_connection(cursor)
+        return result

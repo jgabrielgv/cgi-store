@@ -36,7 +36,7 @@ function cleanupCurrentControls(fields) {
     element.children[0].style.display = "none";
     if (element.className && element.className.includes("form-invalid-data")) {
         element.className = "";
-        element.children[1].lastElementChild.innerHTML = '';
+        element.children[0].lastElementChild.innerHTML = '';
     }
 }
 function mapErrors(fields, response) {

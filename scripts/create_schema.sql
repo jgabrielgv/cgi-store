@@ -121,3 +121,4 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.shopping_cart TO 'cgistore'@'loca
 GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.suggestion TO 'cgistore'@'localhost';
 GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.invoice_header TO 'cgistore'@'localhost';
 GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.invoice_detail TO 'cgistore'@'localhost';
+GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.user_session__history TO 'cgistore'@'localhost';

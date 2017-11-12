@@ -5,6 +5,7 @@ import json
 import sys
 import os
 from http import cookies
+import re
 
 __SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 if not __SCRIPT_DIR in sys.path:
@@ -15,9 +16,8 @@ if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
 import session
-import Cookie 
 import time
-from utils import constants, session
+from utils import config, constants, session
 from os import environ
 from urllib import parse
 from datetime import datetime
@@ -36,17 +36,18 @@ def create_cookie(username):
     # Save the current time in the session
     conn = Connection()
     sess.data['lastvisit'] = repr(time.time())
- 
+
     date = datetime.fromtimestamp(int(sess.cookie['sid']['expires'])).strftime('%Y-%m-%d %H:%M:%S')
     conn.insert_user_cookie(sess.cookie['sid'].value, username, date)
-    print "Location: index.py"
-    
-    print sess.cookie
-    print "Content-type: text/html\n\n"
+    #print("Content-type: text/html\n\n")
+    #print(sess.cookie)
+    #print("Location: index.py")
 
 def check_user_seesion():
     try:
-        cookie = Cookie.SimpleCookie(os.environ["HTTP_COOKIE"])
+        if not "HTTP_COOKIE" in os.environ or not os.environ["HTTP_COOKIE"]:
+            return False
+        cookie = cookies.SimpleCookie(os.environ["HTTP_COOKIE"])
         sess = session.Session(expires=365*24*60*60, cookie_path='/')
         #lastvisit = sess.data.get('lastvisit')
         sess.data['lastvisit'] = repr(time.time())
@@ -55,7 +56,7 @@ def check_user_seesion():
         conn = Connection()
         
         result = conn.valid_username_cookie_id(sess.cookie['sid'].value)
-        cookie_file = '/Users/mcanales/Sites' + '/session/sess_' + sess.cookie['sid'].value + '.db'
+        cookie_file = format_cookie_path(sess.cookie['sid'].value)
         isfile = os.path.exists(cookie_file)
         #print result
         #print isfile
@@ -65,7 +66,7 @@ def check_user_seesion():
         else:
             return True
     
-    except (Cookie.CookieError, KeyError):
+    except cookies.CookieError as error:
         return False
         #print "Content-type: text/plain\n"
         #print "El usuario no esta Logueado"
@@ -85,6 +86,9 @@ def is_float(value):
         return True
     except ValueError:
         return False
+
+def format_cookie_path(cookie_id):
+   return config.SESSION_FILES_ROOT_PATH + '/session/sess_' + cookie_id# + '.db'
 
 def print_page(html_file, title, css_file='', body='', scripts=''):
     """Prints a page based on the html and css parameter specifications"""
@@ -219,7 +223,7 @@ class FormParser(object):
         return val
 
     def elements_count(self):
-        """Retunrs the elements size"""
+        """Returns the elements size"""
         return self.__elements_count
 
     def parse_get_values(self): 
@@ -268,10 +272,10 @@ def validate_string_input(field_name, field_value, max_length, caption, error_di
     if required:
         if not field_value:
             error_dict['invalid_%s' % field_name] = constants.REQUIRED_VALUE_FORMAT % (caption)
-        elif len(field_value) > max_length:
+        elif max_length and len(field_value) > max_length:
             error_dict['invalid_%s' % field_name] = \
              constants.INVALID_LENGTH_FORMAT % (caption, max_length)
-    elif field_value and len(field_value) > max_length:
+    elif field_value and max_length and len(field_value) > max_length:
         error_dict['invalid_%s' % field_name] = \
          constants.INVALID_LENGTH_FORMAT % (caption, max_length)
 
@@ -279,3 +283,13 @@ def redirect_if_session_expired():
     if not check_user_session():
         print("Location: signin.py")
         print("Content-type: text/html\n\n")
+
+def redirect(page):
+    print("Location: %s" % (page))
+    print("Content-type: text/html\n\n")
+
+def request_method():
+    return  environ['REQUEST_METHOD'] if 'REQUEST_METHOD' in environ else ''
+
+def valid_email_address(email):
+    return '@' in email if email else False

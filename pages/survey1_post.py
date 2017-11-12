@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """This script shows the login page"""
 import sys
 import json

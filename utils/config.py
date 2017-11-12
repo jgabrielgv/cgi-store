@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """Stores the configuration values"""
 #MySQL configuration rules
 MYSQL_DB = 'store_lab'

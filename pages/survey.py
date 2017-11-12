@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """This script shows the suggerents for no register users"""
 
 import sys, os
