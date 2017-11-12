@@ -82,5 +82,6 @@ if __ERRORS:
     __replace_body_error('invalid_password', '</password>', 'errorClassPass')
 
 print ("Content-type: text/html\n\n")
-wholepage = pagetemplate.replace('**title**', 'Sign Up').replace('**css**', constants.DEFAULT_CSS).replace('**body**', __BODY['content']).replace('**scripts**', '').replace('#action', 'signup.py')
+wholepage = pagetemplate.replace('**title**', 'Sign Up').replace('**css**', constants.DEFAULT_CSS).replace('**body**', __BODY['content']).replace('**scripts**', '').replace('#action', 'signup.py') \
+.replace('**menu**', '')
 ucgiprint(wholepage)

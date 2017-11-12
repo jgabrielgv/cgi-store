@@ -13,6 +13,7 @@ from utils.helpers import pagetemplate, valiadtionMessage, ucgiprint, loadhtml, 
 import urllib
 
 body = loadhtml('survey.html')
-wholepage = pagetemplate.replace('**title**', 'Sugerencias').replace('**css**', constants.DEFAULT_CSS).replace('**body**', body).replace('**scripts**', '<script src="../js/create_suge.js"></script>')
+wholepage = pagetemplate.replace('**title**', 'Sugerencias').replace('**css**', constants.DEFAULT_CSS).replace('**body**', body).replace('**scripts**', '<script src="../js/create_suge.js"></script>') \
+.replace('**menu**', '')
 print("Content-type: text/html\n\n")
 ucgiprint(wholepage)

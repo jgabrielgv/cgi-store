@@ -190,7 +190,9 @@ li a:hover:not(.active) {
   margin-top: 25px;
 }
 
-
+.right-align {
+  float: right;
+}
 
 
 

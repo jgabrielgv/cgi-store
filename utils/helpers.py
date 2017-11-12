@@ -90,13 +90,14 @@ def is_float(value):
 def format_cookie_path(cookie_id):
     return config.SESSION_FILES_ROOT_PATH + '/session/sess_' + cookie_id# + '.db'
 
-def print_page(html_file, title, css_file='', body='', scripts=''):
+def print_page(html_file, title, css_file='', body='', scripts='', is_logged=False):
     """Prints a page based on the html and css parameter specifications"""
     print("Content-type: text/html\n\n")
     if not body and html_file:
         body = loadhtml(html_file)
     wholepage = pagetemplate.replace('**title**', title).replace('**css**', css_file) \
     .replace('**body**', body).replace('**scripts**', scripts)
+    wholepage = wholepage.replace('**menu**', header_menu() if is_logged else '')
     ucgiprint(wholepage)
 
 def ucgiprint(inline='', unbuff=False, encoding='UTF-8'):
@@ -173,6 +174,7 @@ pagetemplate = '''
                     
             </head>
             <body>
+                    **menu**
                     **body**
                     **scripts**
                     <script src="../js/main.js"></script>
@@ -286,3 +288,15 @@ def request_method():
 
 def valid_email_address(email):
     return '@' in email if email else False
+
+def header_menu():
+    return """
+            <ul id='menu_id'>
+                <li class='index.py'><a class="active" href="index.py">Home</a></li>
+                <li class='myproducts.py'><a href="myproducts.py">Mis Productos</a></li>
+                <li class='cart.py'><a href="cart.py">Carrito</a></li>
+                <li class='survey1.py'><a href="survey1.py">Sugerencias</a></li>
+                <li class='#'><a href="#">Acerca de..</a></li>
+                <li class='signout.py right-align'><a href="signout.py">Cerrar Sesion</a></li>
+            </ul>
+           """

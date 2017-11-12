@@ -76,4 +76,4 @@ def __build_dynamic_content():
         return html.replace("**content**", "<p>No se ha encontrado coincidencias.</p>")
     return html.replace("**content**", __content_html()).replace("**details**", detail_list)
 
-helpers.print_page('', "Inicio", constants.DEFAULT_CSS, __build_dynamic_content())
+helpers.print_page('', "Inicio", constants.DEFAULT_CSS, __build_dynamic_content(), '', True)

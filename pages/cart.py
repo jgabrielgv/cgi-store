@@ -37,4 +37,4 @@ def __build_dynamic_content():
     return loadhtml("cart.html").replace("**details**", __build_detail_list_html(results)) \
     .replace("**subtotal**", str(subtotal))
 
-print_page('', "Mis carrito", constants.DEFAULT_CSS, __build_dynamic_content())
+print_page('', "Mis carrito", constants.DEFAULT_CSS, __build_dynamic_content(), '', True)

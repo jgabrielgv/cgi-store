@@ -1,3 +1,25 @@
+(function () {
+    validate_menu()
+})();
+
+function validate_menu() {
+    var id = document.getElementById('menu_id')
+    if(!id)
+        return;
+    var a = window.location.href,
+    b = a.lastIndexOf("/");
+    var pageName = a.substr(b + 1);
+    for(let index in id.getElementsByTagName('li')) {
+        if(!id.children || !id.children[index].children || id.children[index].children.length == 0)
+            continue;
+        id.children[index].children[0].className = "";
+    }
+    let newItem = id.getElementsByClassName(pageName)
+    if(!newItem)
+        return;
+    newItem[0].className = "active"
+}
+
 function sendData(url, params) {
     var esc = encodeURIComponent;
     var query = Object.keys(params)

@@ -81,7 +81,8 @@ def __build_dynamic_content(htmlerror):
     if err:
         body = body.replace('</error>', htmlerror).replace('errorClass', 'form-invalid-data')
 
-    wholepage = pagetemplate.replace('**title**', 'Log In').replace('**css**', constants.DEFAULT_CSS).replace('**body**', body).replace('**scripts**', '').replace('#action', 'signin.py')
+    wholepage = pagetemplate.replace('**title**', 'Log In').replace('**css**', constants.DEFAULT_CSS).replace('**body**', body).replace('**scripts**', '').replace('#action', 'signin.py') \
+    .replace('**menu**', '')
     print("Content-type: text/html\n\n")
     helpers.ucgiprint(wholepage)
 

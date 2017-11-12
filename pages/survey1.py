@@ -11,9 +11,11 @@ if not __SCRIPT_DIR in sys.path:
 from utils import constants
 from utils.helpers import pagetemplate, valiadtionMessage, ucgiprint, loadhtml, FormParser, check_user_seesion
 import urllib
+from utils import helpers
 
 body = loadhtml('survey1.html')
-wholepage = pagetemplate.replace('**title**', 'Sugerencias').replace('**css**', constants.DEFAULT_CSS).replace('**body**', body).replace('#action', 'signin.py').replace('**scripts**', '<script src="../js/create_suge.js"></script>')
+wholepage = pagetemplate.replace('**title**', 'Sugerencias').replace('**css**', constants.DEFAULT_CSS).replace('**body**', body).replace('#action', 'signin.py').replace('**scripts**', '<script src="../js/create_suge.js"></script>') \
+.replace('**menu**', helpers.header_menu())
 if check_user_seesion():
     print("Content-type: text/html\n\n")
     ucgiprint(wholepage)
