@@ -1,52 +1,70 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 """This script shows the login page"""
-import os
 import sys
 import json
-
-__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
-__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
-if not __SCRIPT_DIR in sys.path:
-    sys.path.append(__SCRIPT_DIR)
-
-from utils import constants, helpers
+from utils.helpers import FormParser
 from data.dao import Connection
 from data.models import Suggestion
 
-__ERRORS = {}
+query_string = sys.stdin.read()
+name = None
+message = None
+email = None
+result = None
+def validate_properties():
+    """Validate the product properties before save it to database"""
+    errorMessage = None
+    if not name and not message and not email:
+        errorMessage = 'all'
+    elif not name:
+        errorMessage = 'name'
+    elif not message:
+        errorMessage = 'message'
+    elif not email:
+        errorMessage = 'email'
+    return errorMessage
 
-def __validate_properties(user, name, email, reason, message):
-    if not user:
-        helpers.validate_string_input('name', name, 50, 'Nombre', __ERRORS)
-        helpers.validate_string_input('email', email, 50, 'Correo', __ERRORS)
-    helpers.validate_string_input('reason', reason, 100, 'Asunto', __ERRORS, False)
-    helpers.validate_string_input('message', message, 300, 'Mensaje', __ERRORS, False)
-    return __ERRORS
+if query_string:
+    parser = FormParser()
+    parser.parse_values(query_string)
 
-def __process_survey():
-    parser = helpers.FormParser()
-    parser.discover_values()
+    conn = Connection()
     name = parser.get_value("name", "")
     reason = parser.get_value("reason", "")
     message = parser.get_value("message", "")
     email = parser.get_value("email", "")
-    user_id = helpers.get_session_user_id()
+    user_id = None
+    if name and message and email:
+        suggestion = Suggestion(user_id, '', reason, message, name, email)
+        creeateSuggestion = conn.create_suggestion(suggestion)
+    else:
+        result = validate_properties()
 
-    user = None
-    conn = Connection()
-    if helpers.is_float(user_id) and float(user_id) > 0:
-        user = conn.fetch_user_by_user_id(float(user_id))
-        if not user:
-            __ERRORS[constants.VALIDATION_ERROR] = 'Usuario no existente.'
-            return False
-        else:
-            email = user.email
-            name = user.name
-    if __validate_properties(user, name, email, reason, message):
-        return False
+__ERRORS = {}
+if result:
+    if result == 'all':
+        __ERRORS['invalid_name'] = 'Nombre es requerido'
+        __ERRORS['invalid_email'] = 'Email es requerido'
+        __ERRORS['invalid_message'] = 'Mensaje es requerido'
+    elif result == 'name':
+        __ERRORS['invalid_name'] = 'Nombre es requerido'
+    elif result == 'message':
+        __ERRORS['invalid_message'] = 'Mensaje es requerido'
+    elif result == 'email':
+       __ERRORS['invalid_email'] = 'Email es requerido'
 
-    suggestion = Suggestion(user_id, name, email, reason, message)
-    return conn.create_suggestion(suggestion)
+if __ERRORS:
+    payload = json.dumps(__ERRORS) 
+    print "Status: 400 Bad Request"
+    print "Content-Type: application/json"
+    print "Content-Length: %d" % (len(payload))
+    print ""
+    print payload 
+else:
+    payload = json.JSONEncoder().encode({'response': 'ok'})
+    print "Status: 200 OK"
+    print "Content-Type: application/json"
+    print "Content-Length: %d" % (len(payload))
+    print ""
+    print payload
 
-__RESULT = __process_survey()
-helpers.print_status_code(__RESULT, {}, __ERRORS)

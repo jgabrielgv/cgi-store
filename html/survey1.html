@@ -11,14 +11,29 @@
       </error>
       </div>
       <form class="register-form" id="sugeLog" name="newuser" onSubmit="JavaScript:create_sugge('sugeLog', event)">
-        <div class="errorClassUser">
+        <div id="invalid_reason">
             <input type="text" name="reason" placeholder="Tema"/>
-        </username>
+            <div class="hide-content">
+              <span class="form-invalid-data-sign">
+                  <i class="fa fa-close"></i>
+              </span>
+              <span id="invalid_reason_msg" class="form-invalid-data-info"></span>
+          </div>
         </div>
-        <div class="errorClassPass">
+        <div id="invalid_message">
                 <textarea rows="4" cols="50" name="message" placeholder="Sugerencia"></textarea>
-        </password>
+                <div class="hide-content">
+                  <span class="form-invalid-data-sign">
+                      <i class="fa fa-close"></i>
+                  </span>
+                  <span id="invalid_message_msg" class="form-invalid-data-info"></span>
+              </div>
         </div>
+        <div id="validation_error">
+          <div class="hide-content">
+              <span id="validation_error_msg" class="form-invalid-data-info"></span>
+          </div>
+      </div>
         <button>Crear</button>
       </form>
     </div>
