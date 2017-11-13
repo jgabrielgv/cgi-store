@@ -12,7 +12,7 @@ if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
 from data.dao import Connection
-from utils.helpers import loadhtml, print_page, get_session_user_id, check_user_seesion
+from utils.helpers import loadhtml, print_page, check_user_seesion
 from utils import constants, helpers, request_handler
 
 helpers.redirect_if_session_expired()

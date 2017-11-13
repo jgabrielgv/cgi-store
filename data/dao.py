@@ -409,7 +409,7 @@ class Connection(object):
             sum(p.price * sc.quantity) as total, %s from product p  
             inner join shopping_cart sc on p.product_id = sc.product_id  
             inner join user u on sc.user_id = u.user_id and sc.user_id = %s;""" 
-            cursor.execute(sql_query, (user_id,)) 
+            cursor.execute(sql_query, (address,user_id,)) 
  
             sql_query = """insert into invoice_detail(invoice_no, product_id, descr, quantity, price, discount)  
             select %s as invoice_no, p.product_id, p.descr, sc.quantity, p.price, 0 as discount from product p  

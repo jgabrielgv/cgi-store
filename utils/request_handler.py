@@ -24,7 +24,7 @@ def process_request(funct, errors):
     auth_user = fetch_authorized_user_session()
     if not is_user_authorized(auth_user):
         helpers.print_request(constants.FORBIDDEN, json.JSONEncoder()\
-        .encode({'errors': constants.RELOAD_PAGE_MESSAGE}))
+        .encode({'validation_error': constants.RELOAD_PAGE_MESSAGE}))
     elif not funct(auth_user):
         helpers.print_request(constants.BAD_REQUEST, json.dumps(errors))
     else:

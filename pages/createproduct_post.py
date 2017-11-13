@@ -51,22 +51,3 @@ def __process_request(user):
     return True
 
 request_handler.process_request(__process_request, __ERRORS)
-
-'''
-def __fetch_authorized_user():
-    sess = helpers.build_session_entity()
-    conn = Connection()
-    return conn.autorized_session(sess.cookie['sid'].value)
-
-def __is_user_authorized(user):
-    return user and not user == '403'
-
-__AUTHUSER = __fetch_authorized_user()
-if not __is_user_authorized(__AUTHUSER):
-    helpers.print_request(constants.FORBIDDEN, json.JSONEncoder()\
-    .encode({'errors': constants.RELOAD_PAGE_MESSAGE}))
-elif not __process_request():
-    helpers.print_request(constants.BAD_REQUEST, json.dumps(__ERRORS))
-else:
-    helpers.print_request(constants.SUCCESS, json.JSONEncoder().encode({'response': 'ok'}))
-'''

@@ -20,13 +20,13 @@
 </fieldset>
 <fieldset>
     <legend>Realizar pago</legend>
-    <form id="frmConfirmPayment" method="post"  onSubmit="javaScript:place_order('frmConfirmPayment', event)">
+    <form name="frmConfirmPayment" id="frmConfirmPayment" method="post" onSubmit="javaScript:place_order('frmConfirmPayment', event)">
         <table>
             <tr>
                 <td>Direcci&#243;n de entrega:</td>
                 <td>
                     <div id="invalid_address">
-                        <input type="text" name="address">
+                        <textarea rows="4" cols="50" name="address"></textarea>
                         <div class="hide-content">
                             <span class="form-invalid-data-sign">
                                 <i class="fa fa-close"></i>

@@ -4,8 +4,7 @@ function place_order(frmId, event) {
         event.preventDefault();
         return;
     }
-    var form  = document.getElementById(frmId);
-    let data = { "address": form.getElementsByName('address')[0].value, };
+    let data = { "address": document.getElementsByName('address')[0].value, };
     sendData('place_order.py', data);
     event.preventDefault();
 }

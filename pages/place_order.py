@@ -17,7 +17,7 @@ from  data.dao import Connection
 __ERRORS = {}
 
 def __validate_properties(address):
-    helpers.validate_string_input('address', address, 10, 'Dirección', __ERRORS)
+    helpers.validate_string_input('address', address, 500, 'Dirección', __ERRORS)
     return __ERRORS
 
 def __place_order(user):

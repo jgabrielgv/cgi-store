@@ -9,7 +9,7 @@ if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
 from utils import constants, helpers, request_handler
-from utils.helpers import print_page, get_session_user_id, loadhtml, check_user_seesion
+from utils.helpers import print_page, loadhtml, check_user_seesion
 from data.dao import Connection
 
 helpers.redirect_if_session_expired()

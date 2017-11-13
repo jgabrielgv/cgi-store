@@ -82,9 +82,6 @@ def check_user_session():
 def current_date():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-def get_session_user_id(): 
-    return 2
-
 def is_float(value):
     try:
         float(value)
@@ -190,24 +187,6 @@ pagetemplate = '''
 def is_request():
     return 'REQUEST_METHOD' in environ
 
-def print_status_code(result, success_content={}, error_content={}, \
- success_code='Status: 200 success', error_code='Status: 400 Bad Request'):
-    """Print the status code in page, be it succesfull or failed request"""
-    if result:
-        print('Content-Type: text/json')
-        print(success_code)
-        print()
-        if success_content:
-            print(json.dumps(success_content))
-    else:
-        print('Content-Type: text/json')
-        print(error_code)
-        print()
-        print(json.dumps(error_content))
-
-def lstrip_string(value):
-    return value.lstrip() if value else value
-
 class FormParser(object):
     """Form parser class"""
 
@@ -218,9 +197,7 @@ class FormParser(object):
     def get_value(self, key, default_value, strip_value=True):
         """Gets an element from an array"""
         val = self.__elements[key] if key in self.__elements else default_value
-        if val and strip_value:
-            val.strip()
-        return val
+        return val.strip() if val and strip_value else val
 
     def elements_count(self):
         """Returns the elements size"""
@@ -293,7 +270,6 @@ def request_method():
 
 def valid_email_address(email):
     return '@' in email if email else False
-
 
 def header_menu():
     return header_menu_registered() if check_user_session() else header_menu_non_registered()

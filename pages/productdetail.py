@@ -63,7 +63,7 @@ def __build_dynamic_content():
         return ''
 
     return loadhtml("productdetail.html").format(product.code, product.descr, product.price, \
-    product.username, product.entry_date).replace("**add_qty**", __form_add_qty_content() if helpers.check_user_session() else '')
+    product.username, product.entry_date).replace("**add_qty**", __form_add_qty_content().format(product.code) if helpers.check_user_session() else '')
 
 __DATA = __build_dynamic_content()
 

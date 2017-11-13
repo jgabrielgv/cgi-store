@@ -49,7 +49,8 @@ def __details_html():
             </tr>"""
 
 def __field_keywords():
-    return helpers.lstrip_string(__PARSER.get_value("field-keywords", '', False))
+    return __PARSER.get_value("field-keywords", '', False).lstrip() \
+    if __PARSER.get_value("field-keywords", '', False) else __PARSER.get_value("field-keywords", '', False)
 
 def __build_detail_list_html():
     conn = Connection()
