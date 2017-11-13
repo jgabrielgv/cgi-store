@@ -78,7 +78,6 @@ class Connection(object):
                     return user
             return response
         except mariadb.Error as error:
-            print error
             self.__log(self.__default_sql_error, error)
             return response
         finally:
@@ -405,12 +404,12 @@ class Connection(object):
                 self.__log("No hay productos para pagar.") 
                 return result 
  
-            sql_query = """insert into invoice_header (user_id, descr, subtotal, taxes, total)  
+            sql_query = """insert into invoice_header (user_id, descr, subtotal, taxes, total, address)  
             select u.user_id, 'Invoice' as descr, sum(p.price * sc.quantity) as subtotal, 0 as taxes,  
-            sum(p.price * sc.quantity) as total from product p  
+            sum(p.price * sc.quantity) as total, %s from product p  
             inner join shopping_cart sc on p.product_id = sc.product_id  
             inner join user u on sc.user_id = u.user_id and sc.user_id = %s;""" 
-            cursor.execute(sql_query, (user_id,)) 
+            cursor.execute(sql_query, (address,user_id,)) 
  
             sql_query = """insert into invoice_detail(invoice_no, product_id, descr, quantity, price, discount)  
             select %s as invoice_no, p.product_id, p.descr, sc.quantity, p.price, 0 as discount from product p  
@@ -478,3 +477,28 @@ class Connection(object):
         finally:
             self.__close_connection(cursor)
         return True        
+
+    def username_email_exists(self, username, email):
+        """Validates if a user exists by username or email"""
+        self.__open_connection()
+        cursor = self.__db.cursor()
+        result = {}
+        try:
+            sql_query = """select user_id, username, email, entry_date from user where username = %s or email = %s"""
+            cursor.execute(sql_query, (username, email,))
+            dataset = cursor.fetchall()
+            for user_id, user_name, email, entry_date in dataset:
+                result = User(user_id, user_name, email, '', '', entry_date)
+            if not result:
+                return {}
+            values = {}
+            if result.username == username:
+                values['username'] = True
+            if result.email == email:
+                values['email'] = True
+            return values
+        except mariadb.Error as error:
+            self.__log(self.__default_sql_error, error)
+        finally:
+            self.__close_connection(cursor)
+        return result

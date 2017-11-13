@@ -13,7 +13,41 @@ from data.dao import Connection
 from utils.helpers import FormParser, loadhtml, print_page
 from utils import constants, helpers
 
-helpers.redirect_if_session_expired()
+def __form_add_qty_content():
+    return """
+            <form name="frmIncreaseCartQty" method="post" onSubmit="javaScript:increase_cart_qty('frmIncreaseCartQty', event)">
+                        <input type="hidden" name="code" value="{0}">
+                        <fieldset>
+                            <legend>Agregar al carrito</legend>
+                            <table>
+                                <tr>
+                                    <td>Cantidad</td>
+                                    <td>
+                                        <div id="invalid_quantity">
+                                            <input type="number" name="quantity" value="1">
+                                            <div class="hide-content">
+                                                <span class="form-invalid-data-sign">
+                                                    <i class="fa fa-close"></i>
+                                                </span>
+                                                <span id="invalid_quantity_msg" class="form-invalid-data-info"></span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <div id="validation_error">
+                                            <div class="hide-content">
+                                                <span id="validation_error_msg" class="form-invalid-data-info"></span>
+                                            </div>
+                                        </div>
+                                        <input type="submit" value="Agregar">
+                                    </td>
+                                </tr>
+                            </table>
+                        </fieldset>
+                    </form>
+           """
 
 def __build_dynamic_content():
     parser = FormParser()
@@ -29,7 +63,7 @@ def __build_dynamic_content():
         return ''
 
     return loadhtml("productdetail.html").format(product.code, product.descr, product.price, \
-    product.username, product.entry_date)
+    product.username, product.entry_date).replace("**add_qty**", __form_add_qty_content().format(product.code) if helpers.check_user_session() else '')
 
 __DATA = __build_dynamic_content()
 

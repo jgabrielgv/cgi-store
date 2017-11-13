@@ -14,4 +14,4 @@ from utils import constants, helpers
 helpers.redirect_if_session_expired()
 
 helpers.print_page("createproduct.html", "Crear nuevo producto", constants.DEFAULT_CSS, \
- '', '<script src="../js/create_product.js"></script>')
+ '', '<script src="../js/create_product.js"></script>', True)

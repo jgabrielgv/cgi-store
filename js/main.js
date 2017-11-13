@@ -1,3 +1,28 @@
+(function () {
+    validate_menu()
+})();
+
+function validate_menu() {
+    var id = document.getElementById('menu_id')
+    if(!id)
+        return;
+    var a = window.location.href,
+    b = a.lastIndexOf("/");
+    var pageName = a.substr(b + 1)
+    if(pageName.includes('?'))
+        pageName = pageName.substring(0, pageName.indexOf("?"))
+    for(let index in id.getElementsByTagName('li')) {
+        if(!id.children || !id.children[index].children || id.children[index].children.length == 0
+        || !id.children[index].children[0].className)
+            continue;
+        id.children[index].children[0].className = id.children[index].children[0].className.replace('active', '');
+    }
+    let newItem = id.getElementsByClassName(pageName)
+    if(!newItem || newItem.length == 0 || newItem.children == 0 || !newItem[0].className)
+        return;
+    newItem[0].className = newItem[0].className += " active"
+}
+
 function sendData(url, params) {
     var esc = encodeURIComponent;
     var query = Object.keys(params)
@@ -52,7 +77,7 @@ function cleanupCurrentControls(fields) {
     element.children[0].style.display = "none";
     if (element.className && element.className.includes("form-invalid-data")) {
         element.className = "";
-        element.children[1].lastElementChild.innerHTML = '';
+        element.children[0].lastElementChild.innerHTML = '';
     }
 }
 function mapErrors(fields, response) {

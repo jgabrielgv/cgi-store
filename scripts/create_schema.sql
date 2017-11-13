@@ -73,10 +73,11 @@ create table if not exists invoice_header (
     invoice_no int not null AUTO_INCREMENT,
     user_id int not null,
     entry_date datetime not null default current_timestamp,
-descr varchar(100),
-subtotal decimal(13,2),
-taxes decimal(13,2),
-total decimal(13,2),
+    descr varchar(100),
+    subtotal decimal(13,2),
+    taxes decimal(13,2),
+    total decimal(13,2),
+    address varchar(500) NOT NULL,
     constraint pk_invoice_header primary key(invoice_no),
 CONSTRAINT fk_invoice_header_user_id FOREIGN KEY (user_id) REFERENCES user(user_id)
       ON DELETE RESTRICT
@@ -121,3 +122,4 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.shopping_cart TO 'cgistore'@'loca
 GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.suggestion TO 'cgistore'@'localhost';
 GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.invoice_header TO 'cgistore'@'localhost';
 GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.invoice_detail TO 'cgistore'@'localhost';
+GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.user_session__history TO 'cgistore'@'localhost';

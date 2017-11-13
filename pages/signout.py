@@ -1,10 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """This script shows the logout an user from his current session"""
 import time
-import session
 import os
-from data.dao import Connection
+import sys
 
+__SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+__SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
+if not __SCRIPT_DIR in sys.path:
+    sys.path.append(__SCRIPT_DIR)
+
+from data.dao import Connection
+from utils import config, helpers, session
 
 sess = session.Session(expires='Thu, 01 Jan 1970 00:00:00 GMT', cookie_path='/')
 lastvisit = sess.data.get('lastvisit')
@@ -15,7 +21,7 @@ else:
     message = 'New session'
 # Save the current time in the session
 sess.data['lastvisit'] = repr(time.time())
-cookie_file = '/Users/mcanales/Sites' + '/session/sess_' + sess.cookie['sid'].value + '.db'
+cookie_file = helpers.format_cookie_path(sess.cookie['sid'].value)
 os.remove(cookie_file)
 sess.cookie['sid']['expires'] = 'Thu, 01 Jan 1970 00:00:00 GMT'
 
@@ -27,12 +33,12 @@ for cookie in sess.cookie:
 #sess.cookie["sid"] = ''
 sess.close()
 #sess.cookie.clear()
-print "Location: signin.py"
-print """\
+print("Location: signin.py")
+print("""\
 %s
 Content-Type: text/plain\n
 sess.cookie = %s
 %s
-""" % (sess.cookie, sess.cookie, message)
+""" % (sess.cookie, sess.cookie, message))
 sess.cookie.clear()
 #print "Content-type: text/html\n\n"

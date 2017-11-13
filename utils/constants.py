@@ -3,6 +3,7 @@
 BAD_REQUEST = "Status: 400 Bad Request"
 ERROR = "error"
 DEFAULT_CSS = '<link rel="stylesheet" type="text/css" href="../css/styles.css">'
+FORBIDDEN = "Status: 403 Forbidden"
 INVALID_CODE = 'invalid_code'
 INVALID_LENGTH_FORMAT = 'Campo %s no puede exceder los %d caracteres.'
 PRODUCT_CODE_LENGTH = 25

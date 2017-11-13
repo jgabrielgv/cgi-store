@@ -12,11 +12,9 @@ if not __SCRIPT_DIR in sys.path:
 import string
 from data.dao import Connection
 from utils import helpers
-from utils.helpers import print_page, loadhtml, check_user_seesion, FormParser, is_request, get_uri_param
+from utils.helpers import print_page, loadhtml, check_user_seesion, FormParser, is_request
 from utils import constants, helpers
 #from utils.email_handler import SmtpClient
-
-helpers.redirect_if_session_expired()
 
 """
 client = SmtpClient("jgmezvargas@gmail.com", ["lm.sanchezvargas@gmail.com", "jgabriel.gv@hotmail.com"])
@@ -31,7 +29,6 @@ def __content_html():
     return """
     <table>
             <thead>
-                <th>Codigo</th>
                 <th>Descripcion</th>
                 <th>Precio</th>
                 <th>Vendedor</th>
@@ -45,15 +42,15 @@ def __content_html():
 
 def __details_html():
     return """<tr>
-                <td>%s</td>
-                <td>%s</td>
-                <td>%s</td>
-                <td>%s</td>
-                <td>%s</td>
+                <td><a href='productdetail.py?code={0}'>{1}</a></td>
+                <td>{2}</td>
+                <td>{3}</td>
+                <td>{4}</td>
             </tr>"""
 
 def __field_keywords():
-    return helpers.lstrip_string(__PARSER.get_value("field-keywords", '', False))
+    return __PARSER.get_value("field-keywords", '', False).lstrip() \
+    if __PARSER.get_value("field-keywords", '', False) else __PARSER.get_value("field-keywords", '', False)
 
 def __build_detail_list_html():
     conn = Connection()
@@ -62,7 +59,7 @@ def __build_detail_list_html():
     if not product_list:
         return ""
     for product in product_list:
-        detail_list.append(__details_html() % (product.code, product.descr, product.price, product.username, product.entry_date))
+        detail_list.append(__details_html().format(product.code, product.descr, product.price, product.username, product.entry_date))
     return ''.join([x for x in detail_list])
 
 def __build_dynamic_content():
@@ -76,4 +73,4 @@ def __build_dynamic_content():
         return html.replace("**content**", "<p>No se ha encontrado coincidencias.</p>")
     return html.replace("**content**", __content_html()).replace("**details**", detail_list)
 
-helpers.print_page('', "Inicio", constants.DEFAULT_CSS, __build_dynamic_content())
+helpers.print_page('', "Inicio", constants.DEFAULT_CSS, __build_dynamic_content(), '')

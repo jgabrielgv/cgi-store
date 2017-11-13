@@ -8,8 +8,8 @@ __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
-from utils import constants, helpers
-from utils.helpers import print_page, get_session_user_id, loadhtml, check_user_seesion
+from utils import constants, helpers, request_handler
+from utils.helpers import print_page, loadhtml, check_user_seesion
 from data.dao import Connection
 
 helpers.redirect_if_session_expired()
@@ -32,9 +32,9 @@ def __build_detail_list_html(results):
 
 def __build_dynamic_content():
     conn = Connection()
-    results = conn.fetch_cart_products_by_user_id(get_session_user_id())
+    results = conn.fetch_cart_products_by_user_id(request_handler.fetch_authorized_user_session().user_id)
     subtotal = sum(c.total() for c in results)
     return loadhtml("cart.html").replace("**details**", __build_detail_list_html(results)) \
     .replace("**subtotal**", str(subtotal))
 
-print_page('', "Mis carrito", constants.DEFAULT_CSS, __build_dynamic_content())
+print_page('', "Mis carrito", constants.DEFAULT_CSS, __build_dynamic_content(), '<script src="../js/place_order.js"></script>', True)

@@ -7,10 +7,6 @@
             <legend>Detalles del producto</legend>
             <table>
                 <tr>
-                    <td>Código:</td>
-                    <td>{0}</td>
-                </tr>
-                <tr>
                     <td>Descripción:</td>
                     <td>{1}</td>
                 </tr>
@@ -28,41 +24,6 @@
                 </tr>
             </table>
         </fieldset>
-        <form name="frmIncreaseCartQty" method="post" onSubmit="javaScript:increase_cart_qty('frmIncreaseCartQty', event)">
-            <input type="hidden" name="code" value="{0}">
-            <fieldset>
-                <legend>Agregar al carrito</legend>
-                <table>
-                    <tr>
-                        <td>Cantidad</td>
-                        <td>
-                            <div id="invalid_quantity">
-                                <input type="number" name="quantity" value="1">
-                                <div class="hide-content">
-                                    <span class="form-invalid-data-sign">
-                                        <i class="fa fa-close"></i>
-                                    </span>
-                                    <span id="invalid_quantity_msg" class="form-invalid-data-info"></span>
-                                </div>
-                            </div>
-                            <div id="validation_error">
-                                    <div></div>
-                                    <div class="hide-content">
-                                        <span class="form-invalid-data-sign">
-                                            <i class="fa fa-close"></i>
-                                        </span>
-                                        <span id="validation_error_msg" class="form-invalid-data-info"></span>
-                                    </div>
-                                </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            <input type="submit" value="Agregar">
-                        </td>
-                    </tr>
-                </table>
-            </fieldset>
-        </form>
+        **add_qty**
     </div>
 </div>

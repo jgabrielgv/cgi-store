@@ -5,6 +5,7 @@ import json
 import sys
 import os
 from http import cookies
+import re
 
 __SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 if not __SCRIPT_DIR in sys.path:
@@ -15,15 +16,19 @@ if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
 import session
-import Cookie 
 import time
-from utils import constants, session
+from utils import config, constants, session
 from os import environ
 from urllib import parse
 from datetime import datetime
 import string
 from datetime import datetime
 from data.dao import Connection
+
+def build_session_entity():
+    sess = session.Session(expires=365*24*60*60, cookie_path='/')
+    sess.data['lastvisit'] = repr(time.time())
+    return sess
 
 def create_cookie(username):
     sess = session.Session(expires=365*24*60*60, cookie_path='/')
@@ -36,17 +41,18 @@ def create_cookie(username):
     # Save the current time in the session
     conn = Connection()
     sess.data['lastvisit'] = repr(time.time())
- 
+
     date = datetime.fromtimestamp(int(sess.cookie['sid']['expires'])).strftime('%Y-%m-%d %H:%M:%S')
     conn.insert_user_cookie(sess.cookie['sid'].value, username, date)
-    print "Location: index.py"
-    
-    print sess.cookie
-    print "Content-type: text/html\n\n"
+    print("Location: index.py")
+    print(sess.cookie)
+    print("Content-type: text/html\n\n")
 
 def check_user_seesion():
     try:
-        cookie = Cookie.SimpleCookie(os.environ["HTTP_COOKIE"])
+        if not "HTTP_COOKIE" in os.environ or not os.environ["HTTP_COOKIE"]:
+            return False
+        cookie = cookies.SimpleCookie(os.environ["HTTP_COOKIE"])
         sess = session.Session(expires=365*24*60*60, cookie_path='/')
         #lastvisit = sess.data.get('lastvisit')
         sess.data['lastvisit'] = repr(time.time())
@@ -55,7 +61,7 @@ def check_user_seesion():
         conn = Connection()
         
         result = conn.valid_username_cookie_id(sess.cookie['sid'].value)
-        cookie_file = '/Users/mcanales/Sites' + '/session/sess_' + sess.cookie['sid'].value + '.db'
+        cookie_file = format_cookie_path(sess.cookie['sid'].value)
         isfile = os.path.exists(cookie_file)
         #print result
         #print isfile
@@ -65,7 +71,7 @@ def check_user_seesion():
         else:
             return True
     
-    except (Cookie.CookieError, KeyError):
+    except cookies.CookieError as error:
         return False
         #print "Content-type: text/plain\n"
         #print "El usuario no esta Logueado"
@@ -76,9 +82,6 @@ def check_user_session():
 def current_date():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-def get_session_user_id(): 
-    return 2
-
 def is_float(value):
     try:
         float(value)
@@ -86,13 +89,17 @@ def is_float(value):
     except ValueError:
         return False
 
-def print_page(html_file, title, css_file='', body='', scripts=''):
+def format_cookie_path(cookie_id):
+    return config.SESSION_FILES_ROOT_PATH + '/session/sess_' + cookie_id# + '.db'
+
+def print_page(html_file, title, css_file='', body='', scripts='', default_registered=False):
     """Prints a page based on the html and css parameter specifications"""
     print("Content-type: text/html\n\n")
     if not body and html_file:
         body = loadhtml(html_file)
     wholepage = pagetemplate.replace('**title**', title).replace('**css**', css_file) \
     .replace('**body**', body).replace('**scripts**', scripts)
+    wholepage = wholepage.replace('**menu**', header_menu_registered() if default_registered else header_menu())
     ucgiprint(wholepage)
 
 def ucgiprint(inline='', unbuff=False, encoding='UTF-8'):
@@ -169,6 +176,7 @@ pagetemplate = '''
                     
             </head>
             <body>
+                    **menu**
                     **body**
                     **scripts**
                     <script src="../js/main.js"></script>
@@ -178,31 +186,6 @@ pagetemplate = '''
 
 def is_request():
     return 'REQUEST_METHOD' in environ
-
-def get_uri_param(param_name):
-    if not "REQUEST_URI" in environ:
-        return ''
-    parsed = parse.urlparse(environ["REQUEST_URI"])
-    values = parse.urlparse.parse_qs(parsed.query)
-    return values[param_name] if param_name in values else ''
-
-def print_status_code(result, success_content={}, error_content={}, \
- success_code='Status: 200 success', error_code='Status: 400 Bad Request'):
-    """Print the status code in page, be it succesfull or failed request"""
-    if result:
-        print('Content-Type: text/json')
-        print(success_code)
-        print()
-        if success_content:
-            print(json.dumps(success_content))
-    else:
-        print('Content-Type: text/json')
-        print(error_code)
-        print()
-        print(json.dumps(error_content))
-
-def lstrip_string(value):
-    return value.lstrip() if value else value
 
 class FormParser(object):
     """Form parser class"""
@@ -214,12 +197,10 @@ class FormParser(object):
     def get_value(self, key, default_value, strip_value=True):
         """Gets an element from an array"""
         val = self.__elements[key] if key in self.__elements else default_value
-        if val and strip_value:
-            val.strip()
-        return val
+        return val.strip() if val and strip_value else val
 
     def elements_count(self):
-        """Retunrs the elements size"""
+        """Returns the elements size"""
         return self.__elements_count
 
     def parse_get_values(self): 
@@ -268,10 +249,10 @@ def validate_string_input(field_name, field_value, max_length, caption, error_di
     if required:
         if not field_value:
             error_dict['invalid_%s' % field_name] = constants.REQUIRED_VALUE_FORMAT % (caption)
-        elif len(field_value) > max_length:
+        elif max_length and len(field_value) > max_length:
             error_dict['invalid_%s' % field_name] = \
              constants.INVALID_LENGTH_FORMAT % (caption, max_length)
-    elif field_value and len(field_value) > max_length:
+    elif field_value and max_length and len(field_value) > max_length:
         error_dict['invalid_%s' % field_name] = \
          constants.INVALID_LENGTH_FORMAT % (caption, max_length)
 
@@ -279,3 +260,45 @@ def redirect_if_session_expired():
     if not check_user_session():
         print("Location: signin.py")
         print("Content-type: text/html\n\n")
+
+def redirect(page):
+    print("Location: %s" % (page))
+    print("Content-type: text/html\n\n")
+
+def request_method():
+    return  environ['REQUEST_METHOD'] if 'REQUEST_METHOD' in environ else ''
+
+def valid_email_address(email):
+    return '@' in email if email else False
+
+def header_menu():
+    return header_menu_registered() if check_user_session() else header_menu_non_registered()
+
+def header_menu_registered():
+    return """
+            <ul id='menu_id'>
+                <li class='index.py'><a class="active" href="index.py">Home</a></li>
+                <li class='myproducts.py'><a href="myproducts.py">Mis Productos</a></li>
+                <li class='cart.py'><a href="cart.py">Carrito</a></li>
+                <li class='survey1.py'><a href="survey1.py">Sugerencias</a></li>
+                <li class='#'><a href="#">Acerca de..</a></li>
+                <li class='signout.py right-align'><a href="signout.py">Cerrar Sesion</a></li>
+            </ul>
+           """
+
+def header_menu_non_registered():
+    return """
+            <ul id='menu_id'>
+                <li class='index.py'><a class="active" href="index.py">Home</a></li>
+                <li class='survey.py'><a href="survey.py">Sugerencias</a></li>
+                <li class='#'><a href="#">Acerca de..</a></li>
+                <li class='signin.py right-align'><a href="signin.py">Iniciar sesion</a></li>
+            </ul>
+           """
+
+def print_request(status_code, payload):
+    print(status_code)
+    print("Content-Type: application/json")
+    print("Content-Length: %d" % (len(payload)))
+    print("")
+    print(payload)
