@@ -39,6 +39,9 @@ function sendData(url, params) {
         return response.json().then(data => {
             if (response.ok) {
                 successPost(params);
+                if (data.response === "suveyOk") {
+                    location.reload();
+                }
                 return data;
             } else {
                 return Promise.reject({ status: response.status, data });
@@ -48,7 +51,7 @@ function sendData(url, params) {
         .then(result => console.log('success:', result))
         .catch(error => mapErrors(params, error.data));
 }
-function successPost(fields)
+function successPost(fields) 
 {
     cleanupCurrentControls(fields);
     for (let item in fields) {
@@ -77,7 +80,7 @@ function cleanupCurrentControls(fields) {
     element.children[0].style.display = "none";
     if (element.className && element.className.includes("form-invalid-data")) {
         element.className = "";
-        element.children[0].lastElementChild.innerHTML = '';
+        element.children[1].lastElementChild.innerHTML = '';
     }
 }
 function mapErrors(fields, response) {

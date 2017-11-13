@@ -40,6 +40,16 @@
             <span id="invalid_email_msg" class="form-invalid-data-info"></span>
         </div>
         </div>
+        <div id="invalid_captcha">
+            <input type="text" name="captcha" placeholder="Ingrese el valor del Captcha"/>
+            <div class="hide-content">
+                <span class="form-invalid-data-sign">
+                    <i class="fa fa-close"></i>
+                </span>
+                <span id="invalid_captcha_msg" class="form-invalid-data-info"></span>
+            </div>
+            **captcha**
+        </div>
         <div id="validation_error">
             <div class="hide-content">
                 <span id="validation_error_msg" class="form-invalid-data-info"></span>
@@ -47,6 +57,7 @@
         </div>
         <button>Crear</button>
         <p class="message"><a href="signin.py">Inicie Sesión</a></p>
+        <input type="hidden" name="random" value="%s" />
       </form>
     </div>
 </div>
