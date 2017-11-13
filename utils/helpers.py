@@ -25,6 +25,11 @@ import string
 from datetime import datetime
 from data.dao import Connection
 
+def build_session_entity():
+    sess = session.Session(expires=365*24*60*60, cookie_path='/')
+    sess.data['lastvisit'] = repr(time.time())
+    return sess
+
 def create_cookie(username):
     sess = session.Session(expires=365*24*60*60, cookie_path='/')
     lastvisit = sess.data.get('lastvisit')
@@ -90,14 +95,14 @@ def is_float(value):
 def format_cookie_path(cookie_id):
     return config.SESSION_FILES_ROOT_PATH + '/session/sess_' + cookie_id# + '.db'
 
-def print_page(html_file, title, css_file='', body='', scripts='', is_logged=False):
+def print_page(html_file, title, css_file='', body='', scripts='', default_registered=False):
     """Prints a page based on the html and css parameter specifications"""
     print("Content-type: text/html\n\n")
     if not body and html_file:
         body = loadhtml(html_file)
     wholepage = pagetemplate.replace('**title**', title).replace('**css**', css_file) \
     .replace('**body**', body).replace('**scripts**', scripts)
-    wholepage = wholepage.replace('**menu**', header_menu() if is_logged else '')
+    wholepage = wholepage.replace('**menu**', header_menu_registered() if default_registered else header_menu())
     ucgiprint(wholepage)
 
 def ucgiprint(inline='', unbuff=False, encoding='UTF-8'):
@@ -289,7 +294,11 @@ def request_method():
 def valid_email_address(email):
     return '@' in email if email else False
 
+
 def header_menu():
+    return header_menu_registered() if check_user_session() else header_menu_non_registered()
+
+def header_menu_registered():
     return """
             <ul id='menu_id'>
                 <li class='index.py'><a class="active" href="index.py">Home</a></li>
@@ -300,3 +309,20 @@ def header_menu():
                 <li class='signout.py right-align'><a href="signout.py">Cerrar Sesion</a></li>
             </ul>
            """
+
+def header_menu_non_registered():
+    return """
+            <ul id='menu_id'>
+                <li class='index.py'><a class="active" href="index.py">Home</a></li>
+                <li class='survey.py'><a href="survey.py">Sugerencias</a></li>
+                <li class='#'><a href="#">Acerca de..</a></li>
+                <li class='signin.py right-align'><a href="signin.py">Iniciar sesion</a></li>
+            </ul>
+           """
+
+def print_request(status_code, payload):
+    print(status_code)
+    print("Content-Type: application/json")
+    print("Content-Length: %d" % (len(payload)))
+    print("")
+    print(payload)

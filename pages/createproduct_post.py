@@ -12,7 +12,7 @@ if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
 from utils.helpers import FormParser, current_date, is_float
-from utils import constants, helpers
+from utils import constants, helpers, request_handler
 from data.dao import Connection
 from data.models import Product
 
@@ -23,16 +23,16 @@ def __validate_properties(code, descr, price):
     helpers.validate_string_input('code', code, constants.PRODUCT_CODE_LENGTH, 'Codigo', __ERRORS)
     helpers.validate_string_input('descr', descr, constants.PRODUCT_DESCR_LENGTH, 'Descripcion', __ERRORS)
     if not price:
-        __ERRORS['invalid_price'] = "Precio es requerido."
+        __ERRORS['invalid_price'] = "Campo Precio es requerido."
     elif not is_float(price):
-        __ERRORS['invalid_price'] = "Precio debe ser un valor numérico."
+        __ERRORS['invalid_price'] = "Campo Precio debe ser un valor numérico."
     elif float(price) < 0:
-        __ERRORS['invalid_price'] = "El precio debe ser mayor o igual a cero."
+        __ERRORS['invalid_price'] = "Campo Precio debe ser mayor o igual a cero."
     return __ERRORS
 
 __RESULT = True
 
-def __process_request():
+def __process_request(user):
     parser = FormParser()
     parser.discover_values()
     code = parser.get_value("code", "")
@@ -41,7 +41,7 @@ def __process_request():
     if __validate_properties(code, descr, price):
         return False
     else:
-        product = Product(0, helpers.get_session_user_id(), code, current_date(), \
+        product = Product(0, user.user_id, code, current_date(), \
         descr, float(price) if is_float(price) else 0)
 
         conn = Connection()
@@ -50,10 +50,23 @@ def __process_request():
             return False
     return True
 
-__RESULT = True
-if not helpers.check_user_session():
-    __ERRORS[constants.VALIDATION_ERROR] = constants.RELOAD_PAGE_MESSAGE
-    __RESULT = False
+request_handler.process_request(__process_request, __ERRORS)
+
+'''
+def __fetch_authorized_user():
+    sess = helpers.build_session_entity()
+    conn = Connection()
+    return conn.autorized_session(sess.cookie['sid'].value)
+
+def __is_user_authorized(user):
+    return user and not user == '403'
+
+__AUTHUSER = __fetch_authorized_user()
+if not __is_user_authorized(__AUTHUSER):
+    helpers.print_request(constants.FORBIDDEN, json.JSONEncoder()\
+    .encode({'errors': constants.RELOAD_PAGE_MESSAGE}))
+elif not __process_request():
+    helpers.print_request(constants.BAD_REQUEST, json.dumps(__ERRORS))
 else:
-    __RESULT = __process_request()
-helpers.print_status_code(__RESULT, {}, __ERRORS)
+    helpers.print_request(constants.SUCCESS, json.JSONEncoder().encode({'response': 'ok'}))
+'''

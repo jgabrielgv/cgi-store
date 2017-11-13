@@ -11,16 +11,16 @@ __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
-from utils import constants, helpers
+from utils import constants, helpers, request_handler
 from  data.dao import Connection
 
 __ERRORS = {}
 
 def __validate_properties(address):
-    helpers.validate_string_input('address', address, 100, 'Dirección', __ERRORS)
+    helpers.validate_string_input('address', address, 10, 'Dirección', __ERRORS)
     return __ERRORS
 
-def __place_order():
+def __place_order(user):
     parser = helpers.FormParser()
     parser.discover_values()
     address = parser.get_value('address', '')
@@ -28,11 +28,9 @@ def __place_order():
         return False
 
     conn = Connection()
-    user_id = helpers.get_session_user_id()
-    if not conn.place_order(user_id, address):
+    if not conn.place_order(user.user_id, address):
         __ERRORS[constants.VALIDATION_ERROR] = conn.errors()
         return False
     return True
 
-__RESULT = __place_order()
-helpers.print_status_code(__RESULT, {}, __ERRORS)
+request_handler.process_request(__place_order, __ERRORS)

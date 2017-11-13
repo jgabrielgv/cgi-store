@@ -13,7 +13,7 @@ if not __SCRIPT_DIR in sys.path:
 
 from data.dao import Connection
 from utils.helpers import loadhtml, print_page, get_session_user_id, check_user_seesion
-from utils import constants, helpers
+from utils import constants, helpers, request_handler
 
 helpers.redirect_if_session_expired()
 
@@ -35,7 +35,7 @@ def __build_detail_list_html(product_list):
 
 def __build_dynamic_content():
     conn = Connection()
-    product_list = conn.fetch_products_by_user_id(get_session_user_id())
+    product_list = conn.fetch_products_by_user_id(request_handler.fetch_authorized_user_session().user_id)
     return loadhtml("myproducts.html").replace("**details**", __build_detail_list_html(product_list))
 
 print_page('', "Mis productos", constants.DEFAULT_CSS, __build_dynamic_content(), '', True)

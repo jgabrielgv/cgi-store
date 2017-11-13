@@ -15,7 +15,7 @@ from utils import helpers
 
 body = loadhtml('survey1.html')
 wholepage = pagetemplate.replace('**title**', 'Sugerencias').replace('**css**', constants.DEFAULT_CSS).replace('**body**', body).replace('#action', 'signin.py').replace('**scripts**', '<script src="../js/create_suge.js"></script>') \
-.replace('**menu**', helpers.header_menu())
+.replace('**menu**', helpers.header_menu_registered())
 if check_user_seesion():
     print("Content-type: text/html\n\n")
     ucgiprint(wholepage)

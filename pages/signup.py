@@ -83,5 +83,5 @@ if __ERRORS:
 
 print ("Content-type: text/html\n\n")
 wholepage = pagetemplate.replace('**title**', 'Sign Up').replace('**css**', constants.DEFAULT_CSS).replace('**body**', __BODY['content']).replace('**scripts**', '').replace('#action', 'signup.py') \
-.replace('**menu**', '')
+.replace('**menu**', helpers.header_menu_non_registered())
 ucgiprint(wholepage)

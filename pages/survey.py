@@ -8,12 +8,12 @@ __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
-from utils import constants
+from utils import constants, helpers
 from utils.helpers import pagetemplate, valiadtionMessage, ucgiprint, loadhtml, FormParser
 import urllib
 
 body = loadhtml('survey.html')
 wholepage = pagetemplate.replace('**title**', 'Sugerencias').replace('**css**', constants.DEFAULT_CSS).replace('**body**', body).replace('**scripts**', '<script src="../js/create_suge.js"></script>') \
-.replace('**menu**', '')
+.replace('**menu**', helpers.header_menu_non_registered())
 print("Content-type: text/html\n\n")
 ucgiprint(wholepage)

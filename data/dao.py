@@ -404,9 +404,9 @@ class Connection(object):
                 self.__log("No hay productos para pagar.") 
                 return result 
  
-            sql_query = """insert into invoice_header (user_id, descr, subtotal, taxes, total)  
+            sql_query = """insert into invoice_header (user_id, descr, subtotal, taxes, total, address)  
             select u.user_id, 'Invoice' as descr, sum(p.price * sc.quantity) as subtotal, 0 as taxes,  
-            sum(p.price * sc.quantity) as total from product p  
+            sum(p.price * sc.quantity) as total, %s from product p  
             inner join shopping_cart sc on p.product_id = sc.product_id  
             inner join user u on sc.user_id = u.user_id and sc.user_id = %s;""" 
             cursor.execute(sql_query, (user_id,)) 
