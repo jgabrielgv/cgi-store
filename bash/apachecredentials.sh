@@ -4,6 +4,7 @@ userName=juancho
 sudo chgrp -R www-data /var/www/html
 sudo find /var/www/html -type d -exec chmod g+rx {} +
 sudo find /var/www/html -type f -exec chmod g+r {} +
+sudo find /var/www/html/cgistore/pages -type f -exec chmod g+rx {} +
 #(2) Give your owner read/write privileges to the folders and the files, 
 #and permit folder access to traverse the directory structure.
 sudo chown -R ${userName} /var/www/html/
