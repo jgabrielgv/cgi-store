@@ -21,17 +21,18 @@ message = None
 email = None
 result = None
 __ERRORS = {}
+random = None
 
-def validate_captcha(captcha, random):
+def validate_captcha(captch, rand):
     result = True
-    if not captchas.validate(random):
+    if not captchas.validate(rand):
         __ERRORS['invalid_captcha'] =  ('Every CAPTCHA can only be used once. The current '
                 + 'CAPTCHA has already been used. Try again.')
         result = False
 
     # Check, that the right CAPTCHA password has been entered and
     # return an error message otherwise.
-    if not captchas.verify(captcha):
+    if not captchas.verify(captch):
         __ERRORS['invalid_captcha'] = 'El captcha ingresado no es valido'
         result = False
     return result
@@ -65,8 +66,8 @@ if query_string:
     if name and message and email:
         valid_captcha = validate_captcha(captcha, random)
         if valid_captcha:
-        suggestion = Suggestion(user_id, '', reason, message, name, email)
-        creeateSuggestion = conn.create_suggestion(suggestion)
+            suggestion = Suggestion(user_id, '', reason, message, name, email)
+            creeateSuggestion = conn.create_suggestion(suggestion)
     else:
         result = validate_properties()
 
