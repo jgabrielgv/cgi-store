@@ -25,7 +25,8 @@
 #---------------------------------------------------------------------
 
 import os
-import md5
+#import md5
+import hashlib
 import random
 import time
 
@@ -73,7 +74,7 @@ class CaptchasDotNet:
             
         # If the time stamp file does not yet exist, create it.
         if not os.path.isfile (self.__time_stamp_file):
-            os.close (os.open (self.__time_stamp_file, os.O_CREAT, 0700))
+            os.close (os.open (self.__time_stamp_file, os.O_CREAT, 0o700))
 
         # Get the current time.
         now = time.time ()
@@ -103,8 +104,8 @@ class CaptchasDotNet:
             try:
                 os.close (os.open (os.path.join (self.__random_repository,
                                                  random),
-                                   os.O_EXCL | os.O_CREAT, 0700))
-            except EnvironmentError, error:
+                                   os.O_EXCL | os.O_CREAT, 0o700))
+            except EnvironmentError as error:
                 # if the file already existed, rerun the loop to try the
                 # next string.
                 if error.errno == errno.EEXIST:
@@ -212,12 +213,12 @@ class CaptchasDotNet:
         encryption_base = self.__secret + random
         if (password_alphabet != "abcdefghijklmnopqrstuvwxyz") or (password_length != 6):
             encryption_base += ":" + password_alphabet + ":" + str(password_length)
-        digest = md5.new (encryption_base).digest ()
+        digest = hashlib.md5(encryption_base.encode('UTF-8')).digest ()
 
         # Compute password
         correct_password = ''
         for pos in range (password_length):
-            letter_num = ord (digest[pos]) % len (password_alphabet)
+            letter_num = digest[pos] % len (password_alphabet)
             correct_password += password_alphabet[letter_num]
  
         # Check password
@@ -233,5 +234,3 @@ class CaptchasDotNet:
         
         # The user input was correct.
         return True
-
-        

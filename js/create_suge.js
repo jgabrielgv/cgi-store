@@ -28,7 +28,9 @@ function createSugeFormParams(form){
         name: form.name.value,
         reason: form.reason.value,
         message:form.message.value,
-        email: form.email.value
+        email: form.email.value,
+        captcha: form.captcha.value,
+        random: form.random.value
     };
     return params;
 }
@@ -36,7 +38,7 @@ function createSugeLogFormParams(form){
     
         var params = {
             reason: form.reason.value,
-            message:form.message.value
+            message:form.message.value,
         };
         return params;
     }

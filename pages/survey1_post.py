@@ -52,7 +52,7 @@ if query_string:
 
     sess = session.Session(expires=365*24*60*60, cookie_path='/')
     #lastvisit = sess.data.get('lastvisit')
-    sess.data['lastvisit'] = repr(time.time())
+    #sess.data['lastvisit'] = repr(time.time())
     user = conn.autorized_session(sess.cookie['sid'].value)
     if user is not None and user is not '403':
         user_id = user.user_id

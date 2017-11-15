@@ -30,7 +30,7 @@ create table if not exists product (
     product_id int not null AUTO_INCREMENT,
     user_id int not null,
     code varchar(25) not null,
-    entry_date datetime not null default current_timestamp,
+    entry_date TIMESTAMP not null default current_timestamp,
     descr varchar(100),
     price decimal(13,2),
     image_path varchar(1024),
@@ -54,25 +54,10 @@ on delete RESTRICT
     on update RESTRICT
 );
 
-
-create table if not exists suggestion (
-    suggestion_id int not null AUTO_INCREMENT,
-    user_id int null,
-    entry_date datetime not null default current_timestamp,
-reason varchar(100),
-message varchar(300),
-name varchar(50),
-email varchar(50),
-    constraint pk_suggestion primary key(suggestion_id),
-CONSTRAINT fk_suggestion_user_id FOREIGN KEY (user_id) REFERENCES user(user_id)
-      ON DELETE RESTRICT
-      ON UPDATE RESTRICT
-);
-
 create table if not exists invoice_header (
     invoice_no int not null AUTO_INCREMENT,
     user_id int not null,
-    entry_date datetime not null default current_timestamp,
+    entry_date TIMESTAMP not null default current_timestamp,
     descr varchar(100),
     subtotal decimal(13,2),
     taxes decimal(13,2),
@@ -109,14 +94,15 @@ create table if not exists suggestion (
     email varchar(50) NOT NULL,
     reason VARCHAR(125),
     message VARCHAR(800),
-    CONSTRAINT pk_suggestion PRIMARY KEY(user_id),
-    CONSTRAINT fk_suggestion_user_id FOREIGN KEY (user_id) REFERENCES User(user_id)
+    CONSTRAINT pk_suggestion PRIMARY KEY(suggestion_id),
+    CONSTRAINT fk_suggestion_user_id FOREIGN KEY (user_id) REFERENCES user(user_id)
     ON DELETE RESTRICT
     ON UPDATE RESTRICT
 );
 
-CREATE USER IF NOT EXISTS 'cgistore'@'localhost' IDENTIFIED BY 'M2rI.DB_C';
-GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.user TO 'cgistore'@'localhost';
+DROP USER cgistore@localhost;
+CREATE USER cgistore@localhost IDENTIFIED BY '_1M2rI.DB_C_tt';
+GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.user TO cgistore@localhost;
 GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.product TO 'cgistore'@'localhost';
 GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.shopping_cart TO 'cgistore'@'localhost';
 GRANT SELECT,INSERT,UPDATE,DELETE ON store_lab.suggestion TO 'cgistore'@'localhost';

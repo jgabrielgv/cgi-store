@@ -10,7 +10,7 @@ __SCRIPT_DIR = os.path.normpath(os.path.join(__SCRIPT_DIR, '..'))
 if not __SCRIPT_DIR in sys.path:
     sys.path.append(__SCRIPT_DIR)
 
-from utils import constants, helpers
+from utils import constants, helpers, config
 from utils.helpers import pagetemplate, valiadtionMessage, ucgiprint
 from utils.helpers import loadhtml, FormParser, create_cookie, check_user_seesion
 from data.dao import Connection
@@ -85,6 +85,7 @@ def __build_dynamic_content(htmlerror):
     .replace('**menu**', helpers.header_menu_non_registered())
     print("Content-type: text/html\n\n")
     helpers.ucgiprint(wholepage)
+    #print(config.SESSION_FILES_FOLDER_PATH)
 
 if helpers.request_method() == 'POST' and __RESULT:
     helpers.redirect('index.py')
