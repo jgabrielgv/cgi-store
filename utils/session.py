@@ -41,8 +41,10 @@ class Session(object):
 
         if cookie_path:
             self.cookie['sid']['path'] = cookie_path
-
+        
         session_dir = config.SESSION_FILES_FOLDER_PATH
+       
+        '''
         if not os.path.exists(session_dir):
             try:
                 os.mkdir(session_dir, 0o2770)
@@ -52,29 +54,25 @@ class Session(object):
                     %s when trying to create the session directory.
                     Create it as '%s'
                 """ % (e.strerror, os.path.abspath(session_dir))
-                raise OSError
-        
+                raise OSError       
+        ''' 
+        '''
         self.data = shelve.open (
             '%s/sess_%s' % (session_dir, sid), 
             writeback=True
         )
         nsid = sid# + '.db'
         os.chmod('%s/sess_%s' % (session_dir, nsid), 0o660)
-
+        '''
         # Initializes the expires data
-        if not self.data.get('cookie'):
-            self.data['cookie'] = {'expires':''}
+        #if not self.data.get('cookie'):
+        #    self.data['cookie'] = {'expires':''}
 
         self.set_expires(expires)
         #Data = self.data
 
-    def close(self):
-        self.data.close()
-
     def set_expires(self, expires=None):
         if expires == '':
-            self.data['cookie']['expires'] = ''
+            self.cookie['sid']['expires'] = ''
         elif isinstance(expires, int):
-            self.data['cookie']['expires'] = expires
-
-        self.cookie['sid']['expires'] = self.data['cookie']['expires']
+            self.cookie['sid']['expires'] = expires

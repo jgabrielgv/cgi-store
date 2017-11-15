@@ -27,20 +27,20 @@ from data.dao import Connection
 
 def build_session_entity():
     sess = session.Session(expires=365*24*60*60, cookie_path='/')
-    sess.data['lastvisit'] = repr(time.time())
+    #sess.data['lastvisit'] = repr(time.time())
     return sess
 
 def create_cookie(username):
     sess = session.Session(expires=365*24*60*60, cookie_path='/')
-    lastvisit = sess.data.get('lastvisit')
-    if lastvisit:
-        message = 'Welcome back. Your last visit was at ' + \
-            time.asctime(time.gmtime(float(lastvisit)))
-    else:
-        message = 'New session'
+    #lastvisit = sess.data.get('lastvisit')
+    #if lastvisit:
+    #    message = 'Welcome back. Your last visit was at ' + \
+    #        time.asctime(time.gmtime(float(lastvisit)))
+    #else:
+    #    message = 'New session'
     # Save the current time in the session
     conn = Connection()
-    sess.data['lastvisit'] = repr(time.time())
+    #sess.data['lastvisit'] = repr(time.time())
 
     date = datetime.fromtimestamp(int(sess.cookie['sid']['expires'])).strftime('%Y-%m-%d %H:%M:%S')
     conn.insert_user_cookie(sess.cookie['sid'].value, username, date)
@@ -55,18 +55,18 @@ def check_user_seesion():
         cookie = cookies.SimpleCookie(os.environ["HTTP_COOKIE"])
         sess = session.Session(expires=365*24*60*60, cookie_path='/')
         #lastvisit = sess.data.get('lastvisit')
-        sess.data['lastvisit'] = repr(time.time())
+        #sess.data['lastvisit'] = repr(time.time())
         #print print_page('index.html', "Inicio")
         #print cookie["sid"].value
         conn = Connection()
         
         result = conn.valid_username_cookie_id(sess.cookie['sid'].value)
         cookie_file = format_cookie_path(sess.cookie['sid'].value)
-        isfile = os.path.exists(cookie_file)
+        #isfile = os.path.exists(cookie_file)
         #print result
         #print isfile
         #print cookie["sid"].value != sess.cookie["sid"].value
-        if not result or not isfile:
+        if not result:
             return False
         else:
             return True
@@ -172,14 +172,14 @@ pagetemplate = '''
                             content="text/html;
                             charset=UTF-8" />
                             **css**
-                            <link rel="stylesheet" href="../css/font-awesome.min.css">
+                            <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
                     
             </head>
             <body>
                     **menu**
                     **body**
                     **scripts**
-                    <script src="../js/main.js"></script>
+                    <script type="application/javascript" src="../js/main.js"></script>
             </body>
     </html>
     '''
