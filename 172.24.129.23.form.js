@@ -1,5 +1,4 @@
 (function IIFE(document) {
-    console.log("test2");
     var center = document.getElementsByTagName('center')[0]
     var form = document.createElement("form");
     form.setAttribute("method", "POST");
